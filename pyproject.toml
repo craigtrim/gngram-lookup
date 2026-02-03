@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "gngram-counter"
+version = "0.1.0"
+description = ""
+authors = ["Craig Trim <ctrim@maryville.edu>"]
+readme = "README.md"
+exclude = ["parquet-hash/", "builder/"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+polars = "^1.0"
+pyarrow = "^18.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
