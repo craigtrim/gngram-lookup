@@ -6,7 +6,7 @@ install:
 	poetry install
 
 test:
-	poetry run pytest tests/ --no-header -rN || test $$? -eq 5
+	poetry run pytest tests/ --no-header -rN
 
 lint:
 	poetry run ruff check .
