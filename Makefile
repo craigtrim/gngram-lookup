@@ -1,4 +1,4 @@
-.PHONY: all install test lint clean build-hash package-release download-data
+.PHONY: all install test lint clean build-hash package-release release download-data
 
 all: install test
 
@@ -24,6 +24,12 @@ build-hash:
 # Package hash files for GitHub release
 package-release:
 	poetry run python -m builder.package_release
+
+# Create GitHub release (usage: make release VERSION=v1.1.0)
+release: package-release
+	@if [ -z "$(VERSION)" ]; then echo "Usage: make release VERSION=v1.1.0"; exit 1; fi
+	gh release create $(VERSION) parquet-hash.tar.gz --title "$(VERSION)" --notes "Data release $(VERSION)"
+	@echo "Update DATA_VERSION in gngram_counter/download_data.py to $(VERSION)"
 
 # Download data files (for end users)
 download-data:

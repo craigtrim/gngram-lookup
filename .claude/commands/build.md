@@ -75,9 +75,20 @@ make package-release  # Step 4
 
 ## Releasing
 
-1. Create a GitHub release tagged as `v1.0.0` (or appropriate version)
-2. Upload `parquet-hash.tar.gz` to the release
-3. Update `DATA_VERSION` in `gngram_counter/download_data.py` if version changed
+Full release workflow:
+
+```bash
+# 1. Package the data
+make package-release
+
+# 2. Create GitHub release and upload tarball
+gh release create v1.0.0 parquet-hash.tar.gz --title "v1.0.0" --notes "Release notes here"
+
+# 3. If version changed, update download_data.py
+# Edit DATA_VERSION in gngram_counter/download_data.py to match the tag
+```
+
+For subsequent releases, increment the version (e.g., `v1.1.0`, `v2.0.0`).
 
 ## Instructions
 
