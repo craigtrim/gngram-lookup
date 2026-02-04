@@ -8,6 +8,9 @@ Streams rows from sorted parquet files and writes to consolidated parquet files:
 Where xx = first 2 hex chars of MD5 (256 files total).
 Each row contains: hash_suffix, peak_tf_decade, peak_df_decade, sum_tf, sum_df
 
+Peak decades are computed using NORMALIZED frequencies (tf/corpus_total) to account
+for the larger corpus size in recent decades.
+
 Usage:
     python -m builder.build_hash_files <parquet_dir> <output_dir>
 """
@@ -19,6 +22,47 @@ from collections import defaultdict
 from pathlib import Path
 
 import polars as pl
+
+# Minimum corpus size (pages) to consider a decade for peak calculation.
+# Decades with fewer pages are skipped to avoid misleadingly high
+# normalized frequencies from tiny corpora. 1M pages reached around 1800.
+MIN_CORPUS_PAGES = 1_000_000
+
+
+def load_decade_totals(totalcounts_path: Path) -> dict[int, tuple[int, int]]:
+    """Load total corpus counts and aggregate by decade.
+
+    Returns:
+        Dict mapping decade -> (total_tf, total_df)
+        where total_tf is sum of match_count and total_df is sum of page_count
+    """
+    decade_tf: dict[int, int] = defaultdict(int)
+    decade_df: dict[int, int] = defaultdict(int)
+
+    with open(totalcounts_path, "r") as f:
+        content = f.read().strip()
+
+    # Format: tab-separated entries like "year,match_count,page_count,volume_count"
+    entries = content.split("\t")
+    for entry in entries:
+        entry = entry.strip()
+        if not entry:
+            continue
+        parts = entry.split(",")
+        if len(parts) != 4:
+            continue
+        try:
+            year = int(parts[0])
+            match_count = int(parts[1])
+            page_count = int(parts[2])
+        except ValueError:
+            continue
+
+        decade = (year // 10) * 10
+        decade_tf[decade] += match_count
+        decade_df[decade] += page_count
+
+    return {d: (decade_tf[d], decade_df[d]) for d in decade_tf}
 
 
 def main() -> None:
@@ -33,6 +77,20 @@ def main() -> None:
         print(f"Directory not found: {parquet_dir}")
         sys.exit(1)
 
+    # Load corpus totals for normalization
+    totalcounts_path = Path(__file__).parent / "totalcounts.txt"
+    if not totalcounts_path.exists():
+        print(f"Total counts file not found: {totalcounts_path}")
+        print("Download from: https://storage.googleapis.com/books/ngrams/books/20200217/eng/totalcounts-1")
+        sys.exit(1)
+
+    print("Loading corpus totals for normalization...")
+    decade_totals = load_decade_totals(totalcounts_path)
+    print(f"  Loaded totals for {len(decade_totals)} decades")
+    for decade in sorted(decade_totals.keys())[-5:]:
+        tf_total, df_total = decade_totals[decade]
+        print(f"    {decade}: tf={tf_total:,}, df={df_total:,}")
+
     files = sorted(parquet_dir.glob("*.parquet"))
     if not files:
         print(f"No parquet files found in {parquet_dir}")
@@ -46,9 +104,9 @@ def main() -> None:
     word_count = 0
     current_word: str | None = None
     peak_tf_decade = 0
-    peak_tf_value = 0
+    peak_tf_normalized = 0.0  # Normalized frequency for comparison
     peak_df_decade = 0
-    peak_df_value = 0
+    peak_df_normalized = 0.0  # Normalized frequency for comparison
     sum_tf = 0
     sum_df = 0
 
@@ -69,19 +127,36 @@ def main() -> None:
                         print(f"    {word_count:,} words processed  [{time.time() - t0:.1f}s elapsed]")
 
                 current_word = word
-                peak_tf_decade = decade
-                peak_tf_value = tf
-                peak_df_decade = decade
-                peak_df_value = doc_freq
+                # Get corpus totals for this decade
+                corpus_tf, corpus_df = decade_totals.get(decade, (1, 1))
+                # Skip decades with tiny corpus for peak calculation
+                if corpus_df >= MIN_CORPUS_PAGES:
+                    peak_tf_normalized = tf / corpus_tf if corpus_tf > 0 else 0
+                    peak_df_normalized = doc_freq / corpus_df if corpus_df > 0 else 0
+                    peak_tf_decade = decade
+                    peak_df_decade = decade
+                else:
+                    peak_tf_normalized = 0.0
+                    peak_df_normalized = 0.0
+                    peak_tf_decade = 0
+                    peak_df_decade = 0
                 sum_tf = 0
                 sum_df = 0
             else:
-                if tf > peak_tf_value:
-                    peak_tf_decade = decade
-                    peak_tf_value = tf
-                if doc_freq > peak_df_value:
-                    peak_df_decade = decade
-                    peak_df_value = doc_freq
+                # Get corpus totals for this decade
+                corpus_tf, corpus_df = decade_totals.get(decade, (1, 1))
+                # Only consider decades with sufficient corpus for peak calculation
+                if corpus_df >= MIN_CORPUS_PAGES:
+                    # Normalize and compare
+                    tf_normalized = tf / corpus_tf if corpus_tf > 0 else 0
+                    df_normalized = doc_freq / corpus_df if corpus_df > 0 else 0
+
+                    if tf_normalized > peak_tf_normalized:
+                        peak_tf_decade = decade
+                        peak_tf_normalized = tf_normalized
+                    if df_normalized > peak_df_normalized:
+                        peak_df_decade = decade
+                        peak_df_normalized = df_normalized
 
             sum_tf += tf
             sum_df += doc_freq
