@@ -11,6 +11,9 @@ python = "^3.11"
 polars = "^1.0"
 pyarrow = "^18.0"
 
+[tool.poetry.scripts]
+gngram-exists = "gngram_counter.cli:gngram_exists"
+gngram-freq = "gngram_counter.cli:gngram_freq"
 
 [build-system]
 requires = ["poetry-core"]
