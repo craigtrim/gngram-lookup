@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/gngram-lookup.svg)](https://badge.fury.io/py/gngram-lookup)
 [![Downloads](https://pepy.tech/badge/gngram-lookup)](https://pepy.tech/project/gngram-lookup)
 [![Downloads/Month](https://pepy.tech/badge/gngram-lookup/month)](https://pepy.tech/project/gngram-lookup)
-[![Tests](https://img.shields.io/badge/tests-58-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-131-brightgreen)](https://github.com/craigtrim/gngram-lookup/tree/main/tests)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 
 Word frequency from 500 years of books. O(1) lookup. 5 million words.
@@ -45,11 +45,11 @@ gngram-freq computer
 
 ## Docs
 
-- [API Reference](docs/api.md)
-- [CLI Reference](docs/cli.md)
-- [Data Format](docs/data-format.md)
-- [Use Cases](docs/use-cases.md)
-- [Development](docs/development.md)
+- [API Reference](https://github.com/craigtrim/gngram-lookup/blob/main/docs/api.md)
+- [CLI Reference](https://github.com/craigtrim/gngram-lookup/blob/main/docs/cli.md)
+- [Data Format](https://github.com/craigtrim/gngram-lookup/blob/main/docs/data-format.md)
+- [Use Cases](https://github.com/craigtrim/gngram-lookup/blob/main/docs/use-cases.md)
+- [Development](https://github.com/craigtrim/gngram-lookup/blob/main/docs/development.md)
 
 ## See Also
 
@@ -62,4 +62,4 @@ Data derived from the [Google Books Ngram](https://books.google.com/ngrams) data
 
 ## License
 
-Proprietary. See [LICENSE](LICENSE).
+Proprietary. See [LICENSE](https://github.com/craigtrim/gngram-lookup/blob/main/LICENSE).

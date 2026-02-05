@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "gngram-lookup"
 packages = [{include = "gngram_counter"}]
-version = "0.2.1"
+version = "0.2.2"
 description = "Static Hash-Based Lookup for Google Ngram Frequencies"
 authors = ["Craig Trim <craigtrim@gmail.com>"]
 maintainers = ["Craig Trim <craigtrim@gmail.com>"]
