@@ -1,4 +1,4 @@
-"""Text normalization utilities for gngram-counter.
+"""Text normalization utilities for gngram-lookup.
 
 Handles normalization of Unicode apostrophe variants, accented characters,
 and other text transformations to ensure consistent matching against the

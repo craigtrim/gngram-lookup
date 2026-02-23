@@ -1,5 +1,5 @@
 """
-High-level lookup API for gngram-counter.
+High-level lookup API for gngram-lookup.
 
 The ngram corpus contains only pure alphabetic words, so contractions,
 possessives, and hyphenated compounds are absent. Fallback strategies:
@@ -17,8 +17,8 @@ from typing import TypedDict
 
 import polars as pl
 
-from gngram_counter.data import get_hash_file, is_data_installed
-from gngram_counter.normalize import normalize
+from gngram_lookup.data import get_hash_file, is_data_installed
+from gngram_lookup.normalize import normalize
 
 
 class FrequencyData(TypedDict):
@@ -126,7 +126,7 @@ def exists(word: str) -> bool:
     """
     if not is_data_installed():
         raise FileNotFoundError(
-            "Data files not installed. Run: python -m gngram_counter.download_data"
+            "Data files not installed. Run: python -m gngram_lookup.download_data"
         )
 
     word = normalize(word)
@@ -169,7 +169,7 @@ def frequency(word: str) -> FrequencyData | None:
     """
     if not is_data_installed():
         raise FileNotFoundError(
-            "Data files not installed. Run: python -m gngram_counter.download_data"
+            "Data files not installed. Run: python -m gngram_lookup.download_data"
         )
 
     word = normalize(word)
@@ -209,7 +209,7 @@ def batch_frequency(words: list[str]) -> dict[str, FrequencyData | None]:
     """
     if not is_data_installed():
         raise FileNotFoundError(
-            "Data files not installed. Run: python -m gngram_counter.download_data"
+            "Data files not installed. Run: python -m gngram_lookup.download_data"
         )
 
     # Group words by bucket prefix for efficient batch lookups

@@ -1,8 +1,8 @@
-"""CLI entry points for gngram-counter."""
+"""CLI entry points for gngram-lookup."""
 
 import sys
 
-from gngram_counter.lookup import exists, frequency
+from gngram_lookup.lookup import exists, frequency
 
 
 def gngram_exists() -> None:

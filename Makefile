@@ -29,8 +29,8 @@ package-release:
 release: package-release
 	@if [ -z "$(VERSION)" ]; then echo "Usage: make release VERSION=v1.1.0"; exit 1; fi
 	gh release create $(VERSION) parquet-hash.tar.gz --title "$(VERSION)" --notes "Data release $(VERSION)"
-	@echo "Update DATA_VERSION in gngram_counter/download_data.py to $(VERSION)"
+	@echo "Update DATA_VERSION in gngram_lookup/download_data.py to $(VERSION)"
 
 # Download data files (for end users)
 download-data:
-	poetry run python -m gngram_counter.download_data
+	poetry run python -m gngram_lookup.download_data

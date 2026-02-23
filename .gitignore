@@ -42,3 +42,4 @@ config.sh
 .claude
 pypi.key
 builder/
+.DS_Store

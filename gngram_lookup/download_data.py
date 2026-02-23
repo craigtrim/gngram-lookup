@@ -2,9 +2,9 @@
 Download gngram data files from GitHub.
 
 Usage:
-    python -m gngram_counter.download_data
+    python -m gngram_lookup.download_data
 
-Downloads parquet hash files to ~/.gngram-counter/data/
+Downloads parquet hash files to ~/.gngram-lookup/data/
 """
 
 import sys
@@ -13,11 +13,11 @@ import urllib.request
 from io import BytesIO
 from pathlib import Path
 
-GITHUB_REPO = "craigtrim/gngram-counter"
+GITHUB_REPO = "craigtrim/gngram-lookup"
 DATA_VERSION = "v1.0.0"
 DATA_FILENAME = "parquet-hash.tar.gz"
 
-DATA_DIR = Path.home() / ".gngram-counter" / "data"
+DATA_DIR = Path.home() / ".gngram-lookup" / "data"
 
 
 def get_download_url() -> str:

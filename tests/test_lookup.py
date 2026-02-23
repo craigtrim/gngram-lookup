@@ -1,5 +1,5 @@
 """
-Comprehensive tests for gngram_counter lookup functions.
+Comprehensive tests for gngram_lookup lookup functions.
 
 Tests cover:
 - Positive outcomes (found words, valid data)
@@ -7,18 +7,18 @@ Tests cover:
 - Edge cases (empty strings, special chars, unicode)
 """
 
-from gngram_counter import (
+from gngram_lookup import (
     batch_frequency,
     exists,
     frequency,
     is_data_installed,
 )
-from gngram_counter.lookup import (
+from gngram_lookup.lookup import (
     _hash_word,
     _split_contraction,
     _split_hyphenated,
 )
-from gngram_counter.normalize import normalize, normalize_apostrophes, strip_accents
+from gngram_lookup.normalize import normalize, normalize_apostrophes, strip_accents
 
 
 class TestDataInstallation:
@@ -28,7 +28,7 @@ class TestDataInstallation:
         """Data must be installed to run tests."""
         assert is_data_installed(), (
             "Data files not installed. "
-            "Run: python -m gngram_counter.download_data"
+            "Run: python -m gngram_lookup.download_data"
         )
 
 

@@ -1,10 +1,10 @@
 """
-Tests for gngram_counter.data module.
+Tests for gngram_lookup.data module.
 """
 
 from pathlib import Path
 
-from gngram_counter import get_data_dir, get_hash_file, is_data_installed
+from gngram_lookup import get_data_dir, get_hash_file, is_data_installed
 
 
 class TestDataDir:

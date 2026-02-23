@@ -1,10 +1,10 @@
 """
-Data path utilities for gngram-counter.
+Data path utilities for gngram-lookup.
 """
 
 from pathlib import Path
 
-DATA_DIR = Path.home() / ".gngram-counter" / "data"
+DATA_DIR = Path.home() / ".gngram-lookup" / "data"
 
 
 def get_data_dir() -> Path:
@@ -32,7 +32,7 @@ def get_hash_file(prefix: str) -> Path:
 
     raise FileNotFoundError(
         f"Data file not found for prefix '{prefix}'. "
-        "Run 'python -m gngram_counter.download_data' to download the data files."
+        "Run 'python -m gngram_lookup.download_data' to download the data files."
     )
 
 
