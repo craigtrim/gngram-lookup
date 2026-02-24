@@ -31,12 +31,14 @@ release: package-release
 	gh release create $(VERSION) parquet-hash.tar.gz --title "$(VERSION)" --notes "Data release $(VERSION)"
 	@echo "Update DATA_VERSION in gngram_lookup/download_data.py to $(VERSION)"
 
-# Download data if not already installed (used by make all)
+# Force-download frequency data (used by make all — always re-downloads)
 ensure-data:
+	rm -rf $(HOME)/.gngram-lookup/data
 	poetry run python -c "from gngram_lookup.download_data import ensure_data; ensure_data()"
 
-# Download POS data if not already installed (used by make all)
+# Force-download POS data (used by make all — always re-downloads)
 ensure-pos-data:
+	rm -rf $(HOME)/.gngram-lookup/pos-data
 	poetry run python -c "from gngram_lookup.download_pos_data import ensure_pos_data; ensure_pos_data()"
 
 # Download data files (for end users, prompts before overwriting)
