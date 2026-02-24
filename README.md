@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/gngram-lookup.svg)](https://badge.fury.io/py/gngram-lookup)
 [![Downloads](https://pepy.tech/badge/gngram-lookup)](https://pepy.tech/project/gngram-lookup)
 [![Downloads/Month](https://pepy.tech/badge/gngram-lookup/month)](https://pepy.tech/project/gngram-lookup)
-[![Tests](https://img.shields.io/badge/tests-131-brightgreen)](https://github.com/craigtrim/gngram-lookup/tree/main/tests)
+[![Tests](https://img.shields.io/badge/tests-194-brightgreen)](https://github.com/craigtrim/gngram-lookup/tree/main/tests)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
 
 Word frequency and part-of-speech tags from 500 years of books. O(1) lookup. 5 million words.
@@ -30,6 +30,11 @@ ng.frequency('computer')
 ng.batch_frequency(['the', 'algorithm', 'xyznotaword'])
 # {'the': {...}, 'algorithm': {...}, 'xyznotaword': None}
 
+ng.word_score('the')                     # 1  (most common)
+ng.word_score('computer')               # 18
+ng.word_score('rucksack')               # 58
+ng.word_score('xyznotaword')            # None
+
 ng.pos('fast')                           # ['ADJ', 'ADV', 'VERB']
 ng.pos('corn', min_tf=100000)            # ['ADJ', 'NOUN']
 ng.pos_freq('corn')                      # {'NOUN': 11722803, 'ADJ': 1433642, ...}
@@ -40,19 +45,20 @@ ng.has_pos('sing', ng.PosTag.VERB, min_tf=1000)  # True
 ## CLI
 
 ```bash
-ng-exists computer    # True, exit 0
-ng-exists xyznotaword # False, exit 1
+exists computer       # True, exit 0
+exists xyznotaword    # False, exit 1
 
-ng-freq computer
+freq computer
 # peak_tf_decade: 2000
 # peak_df_decade: 2000
 # sum_tf: 892451
 # sum_df: 312876
 
-ng-pos fast           # ADJ ADV VERB
-ng-pos-freq corn      # ADJ: 1,433,642 / NOUN: 11,722,803 / VERB: 85,411
-ng-has-pos sing VERB  # True, exit 0
-ng-has-pos fast NOUN  # False, exit 1
+score computer        # 18
+pos fast              # ADJ ADV VERB
+pos-freq corn         # ADJ: 1,433,642 / NOUN: 11,722,803 / VERB: 85,411
+has-pos sing VERB     # True, exit 0
+has-pos fast NOUN     # False, exit 1
 ```
 
 ## Docs

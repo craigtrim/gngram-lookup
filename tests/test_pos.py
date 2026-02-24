@@ -1,16 +1,4 @@
-"""
-Tests for gngram_lookup POS functions: pos(), has_pos(), PosTag.
-"""
-
-from gngram_lookup import PosTag, has_pos, is_pos_data_installed, pos, pos_freq
-
-
-class TestPosDataInstallation:
-    def test_pos_data_is_installed(self):
-        assert is_pos_data_installed(), (
-            "POS data files not installed. "
-            "Run: python -m gngram_lookup.download_pos_data"
-        )
+from gngram_lookup import pos
 
 
 class TestPos:
@@ -50,54 +38,3 @@ class TestPos:
     def test_min_tf_extreme_returns_empty(self):
         # An impossibly high threshold returns nothing
         assert pos("corn", min_tf=10_000_000_000) == []
-
-
-class TestHasPos:
-    def test_verb_positive(self):
-        assert has_pos("sing", PosTag.VERB) is True
-
-    def test_noun_positive(self):
-        assert has_pos("corn", PosTag.NOUN) is True
-
-    def test_unknown_word_returns_false(self):
-        assert has_pos("zzzzqqqq", PosTag.NOUN) is False
-
-    def test_min_tf_filters_noise(self):
-        # With a very high threshold, even present tags return False
-        assert has_pos("corn", PosTag.NOUN, min_tf=10_000_000_000) is False
-
-    def test_min_tf_common_tag_passes(self):
-        assert has_pos("corn", PosTag.NOUN, min_tf=100) is True
-
-
-class TestPosFreq:
-    def test_returns_dict(self):
-        result = pos_freq("corn")
-        assert isinstance(result, dict)
-        assert "NOUN" in result
-        assert isinstance(result["NOUN"], int)
-
-    def test_unknown_word_returns_empty(self):
-        assert pos_freq("zzzzqqqq") == {}
-
-    def test_empty_string_returns_empty(self):
-        assert pos_freq("") == {}
-
-    def test_min_tf_filters(self):
-        full = pos_freq("corn")
-        filtered = pos_freq("corn", min_tf=100000)
-        assert set(filtered).issubset(set(full))
-        assert "NOUN" in filtered
-
-    def test_min_tf_extreme_returns_empty(self):
-        assert pos_freq("corn", min_tf=10_000_000_000) == {}
-
-
-class TestPosTag:
-    def test_enum_values_are_strings(self):
-        assert PosTag.VERB == "VERB"
-        assert PosTag.NOUN == "NOUN"
-
-    def test_all_tags_present(self):
-        tags = {t.value for t in PosTag}
-        assert tags == {"NOUN", "VERB", "ADJ", "ADV", "PRON", "DET", "ADP", "NUM", "CONJ", "PRT", "X"}
