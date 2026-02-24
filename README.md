@@ -71,11 +71,13 @@ Words are scored 1–100 based on their total corpus frequency, log-normalized a
 ```python
 import gngram_lookup as ng
 
-# Score a word
-ng.word_score('the')          # 1   (Zipf)
-ng.word_score('computer')     # 18  (Core)
-ng.word_score('algorithm')    # 40  (Literary)
-ng.word_score('rucksack')     # 58  (Specialized)
+# "the data philosopher defenestrated eigenvalues into petrichor"
+ng.word_score('the')            # 1   → Zipf
+ng.word_score('data')           # 19  → Core
+ng.word_score('philosopher')    # 32  → Literary
+ng.word_score('eigenvalue')     # 43  → Specialized
+ng.word_score('defenestrated')  # 67  → Rare
+ng.word_score('petrichor')      # 82  → Long Tail
 
 # Filter to common words only
 def is_common(word):
