@@ -57,7 +57,7 @@ ng.has_pos('sing', ng.PosTag.VERB)  # True
 
 Words are scored 1–100 based on their total corpus frequency, log-normalized against `the` (the most frequent word). The scale compresses the Zipfian spike at the top and gives meaningful resolution across the rest of the vocabulary.
 
-![gngram-lookup Word Score Zones](https://raw.githubusercontent.com/craigtrim/gngram-lookup/main/docs/images/word_score_zones_v2.png)
+![gngram-lookup Word Score Zones](https://raw.githubusercontent.com/craigtrim/gngram-lookup/main/docs/images/word_score_zones_v3.png)
 
 | Score | Zone | Description | Examples |
 |-------|------|-------------|----------|
