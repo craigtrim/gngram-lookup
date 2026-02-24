@@ -2,7 +2,7 @@
 Tests for gngram_lookup POS functions: pos(), has_pos(), PosTag.
 """
 
-from gngram_lookup import PosTag, has_pos, is_pos_data_installed, pos
+from gngram_lookup import PosTag, has_pos, is_pos_data_installed, pos, pos_freq
 
 
 class TestPosDataInstallation:
@@ -68,6 +68,29 @@ class TestHasPos:
 
     def test_min_tf_common_tag_passes(self):
         assert has_pos("corn", PosTag.NOUN, min_tf=100) is True
+
+
+class TestPosFreq:
+    def test_returns_dict(self):
+        result = pos_freq("corn")
+        assert isinstance(result, dict)
+        assert "NOUN" in result
+        assert isinstance(result["NOUN"], int)
+
+    def test_unknown_word_returns_empty(self):
+        assert pos_freq("zzzzqqqq") == {}
+
+    def test_empty_string_returns_empty(self):
+        assert pos_freq("") == {}
+
+    def test_min_tf_filters(self):
+        full = pos_freq("corn")
+        filtered = pos_freq("corn", min_tf=100000)
+        assert set(filtered).issubset(set(full))
+        assert "NOUN" in filtered
+
+    def test_min_tf_extreme_returns_empty(self):
+        assert pos_freq("corn", min_tf=10_000_000_000) == {}
 
 
 class TestPosTag:

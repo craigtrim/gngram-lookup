@@ -74,6 +74,14 @@ def download_and_extract() -> None:
     print(f"Done: {len(parquet_files)} parquet files installed to {DATA_DIR}")
 
 
+def ensure_data() -> None:
+    """Download frequency data if not already installed. No prompts."""
+    if DATA_DIR.exists() and any(DATA_DIR.glob("**/*.parquet")):
+        print(f"Frequency data already installed at {DATA_DIR}")
+        return
+    download_and_extract()
+
+
 def main() -> None:
     if DATA_DIR.exists() and any(DATA_DIR.glob("**/*.parquet")):
         print(f"Data already exists at {DATA_DIR}")

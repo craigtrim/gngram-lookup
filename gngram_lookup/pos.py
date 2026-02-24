@@ -14,6 +14,8 @@ Usage:
     pos("sing")                         # ["VERB"]
     pos("fast")                         # ["ADJ", "ADV", "VERB"]
     pos("fast", min_tf=1000)            # tags with cumulative freq >= 1000
+    pos_freq("corn")                    # {"NOUN": 11722803, "VERB": 85411, ...}
+    pos_freq("corn", min_tf=1000)       # only tags with tf >= 1000
     has_pos("sing", PosTag.VERB)        # True
     has_pos("sing", PosTag.VERB, min_tf=1000)  # True if tf >= 1000
 """
@@ -78,6 +80,26 @@ def _lookup_raw(word: str) -> dict[str, int]:
     for part in row["pos"][0].split("|"):
         tag, _, freq_str = part.partition(":")
         result[tag] = int(freq_str) if freq_str else 0
+    return result
+
+
+def pos_freq(word: str, min_tf: int | None = None) -> dict[str, int]:
+    """Return attested POS tags and their cumulative corpus frequencies.
+
+    Args:
+        word:   Any word. Normalized before lookup (lowercased, accent-stripped).
+        min_tf: If given, only return tags with cumulative corpus frequency >= min_tf.
+
+    Returns:
+        Dict of {tag: cumulative_tf}, e.g. {"NOUN": 11722803, "VERB": 85411}.
+        Empty dict if the word is absent from the corpus.
+
+    Raises:
+        FileNotFoundError: If POS data files have not been downloaded.
+    """
+    result = _lookup_raw(word)
+    if min_tf is not None:
+        result = {t: f for t, f in result.items() if f >= min_tf}
     return result
 
 

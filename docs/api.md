@@ -44,9 +44,56 @@ for word, freq in results.items():
         print(f"{word}: not found")
 ```
 
+### `pos(word: str, min_tf: int | None = None) -> list[str]`
+
+Return all part-of-speech tags attested for a word in the Google Books Ngram corpus. Tags use Google's own tag set. Returns an empty list if the word is not found.
+
+```python
+import gngram_lookup as ng
+
+ng.pos('sing')                # ['VERB']
+ng.pos('fast')                # ['ADJ', 'ADV', 'VERB']
+ng.pos('the')                 # ['DET']
+ng.pos('xyzabc')              # []
+ng.pos('corn', min_tf=10000)  # ['ADJ', 'NOUN']  — only tags with tf >= 10000
+```
+
+Raises `FileNotFoundError` if POS data has not been downloaded.
+
+### `pos_freq(word: str, min_tf: int | None = None) -> dict[str, int]`
+
+Return all attested POS tags and their cumulative corpus frequencies. Useful for inspecting raw counts before choosing a `min_tf` threshold.
+
+```python
+import gngram_lookup as ng
+
+ng.pos_freq('corn')
+# {'NOUN': 11722803, 'ADJ': 1433642, 'VERB': 85411, ...}
+
+ng.pos_freq('corn', min_tf=100000)
+# {'NOUN': 11722803, 'ADJ': 1433642}
+```
+
+Raises `FileNotFoundError` if POS data has not been downloaded.
+
+### `has_pos(word: str, tag: PosTag, min_tf: int | None = None) -> bool`
+
+Return `True` if the word is attested with the given POS tag.
+
+```python
+import gngram_lookup as ng
+
+ng.has_pos('sing', ng.PosTag.VERB)                  # True
+ng.has_pos('fast', ng.PosTag.ADJ)                   # True
+ng.has_pos('corn', ng.PosTag.VERB, min_tf=100000)   # False (85k < 100k)
+ng.has_pos('corn', ng.PosTag.NOUN, min_tf=100000)   # True (11.7M >= 100k)
+```
+
+Raises `FileNotFoundError` if POS data has not been downloaded.
+
 ### `is_data_installed() -> bool`
 
-Check if data files have been downloaded.
+Check if frequency data files have been downloaded.
 
 ```python
 import gngram_lookup as ng
@@ -55,9 +102,20 @@ if not ng.is_data_installed():
     print("Run: python -m gngram_lookup.download_data")
 ```
 
+### `is_pos_data_installed() -> bool`
+
+Check if POS data files have been downloaded.
+
+```python
+import gngram_lookup as ng
+
+if not ng.is_pos_data_installed():
+    print("Run: python -m gngram_lookup.download_pos_data")
+```
+
 ### `get_hash_file(prefix: str) -> Path`
 
-Return path to a specific hash bucket parquet file. For direct file access.
+Return path to a specific frequency hash bucket parquet file. For direct file access.
 
 ```python
 from gngram_lookup import get_hash_file
@@ -72,7 +130,7 @@ rows = df.filter(pl.col("hash") == h[2:])
 
 ### `get_data_dir() -> Path`
 
-Return the data directory path (`~/.gngram-lookup/data/`).
+Return the frequency data directory path (`~/.gngram-lookup/data/`).
 
 ## Types
 
@@ -86,3 +144,21 @@ A TypedDict with the following fields:
 | `peak_df` | `int` | Decade with highest document frequency |
 | `sum_tf` | `int` | Total term frequency across all decades |
 | `sum_df` | `int` | Total document frequency across all decades |
+
+### `PosTag`
+
+An enum of Google Books Ngram part-of-speech tags:
+
+| Tag | Description |
+|-----|-------------|
+| `PosTag.NOUN` | Noun |
+| `PosTag.VERB` | Verb |
+| `PosTag.ADJ` | Adjective |
+| `PosTag.ADV` | Adverb |
+| `PosTag.PRON` | Pronoun |
+| `PosTag.DET` | Determiner |
+| `PosTag.ADP` | Adposition (preposition/postposition) |
+| `PosTag.NUM` | Numeral |
+| `PosTag.CONJ` | Conjunction |
+| `PosTag.PRT` | Particle |
+| `PosTag.X` | Other / foreign words |

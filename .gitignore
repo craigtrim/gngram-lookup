@@ -35,11 +35,15 @@ ENV/
 .coverage
 htmlcov/
 
-# Data files (too large for git, distributed via GitHub releases)
-parquet-hash/
-parquet-hash.tar.gz
+# Other
 config.sh
 .claude
-pypi.key
-builder/
+*.key
 .DS_Store
+
+# Data files (too large for git, distributed via GitHub releases)
+builder/
+parquet-hash/
+parquet-hash.tar.gz
+pos-hash/
+parquet-pos.tar.gz

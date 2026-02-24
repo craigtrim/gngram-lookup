@@ -1,10 +1,12 @@
 # Data Format
 
-## Overview
+## Frequency Data
+
+### Overview
 
 The corpus is split into 256 parquet files (`00.parquet` to `ff.parquet`), bucketed by MD5 hash prefix. This enables O(1) lookups without loading the entire dataset.
 
-## File Structure
+### File Structure
 
 ```
 ~/.gngram-lookup/data/
@@ -14,9 +16,9 @@ The corpus is split into 256 parquet files (`00.parquet` to `ff.parquet`), bucke
 └── ff.parquet
 ```
 
-Each file contains ~19,500 words (~430KB per file).
+Each file contains ~19,500 words (~430 KB per file).
 
-## Schema
+### Schema
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -26,11 +28,7 @@ Each file contains ~19,500 words (~430KB per file).
 | `sum_tf` | `int` | Total term frequency across all decades |
 | `sum_df` | `int` | Total document frequency across all decades |
 
-## Why Hash-Bucketed?
-
-Words are distributed by MD5 hash to create uniformly-sized files. Looking up a word requires reading only one file, making lookups fast regardless of corpus size.
-
-The lookup process:
+### Lookup Process
 
 1. Compute MD5 hash of lowercase word
 2. Use first 2 hex chars as bucket (filename)
@@ -45,6 +43,59 @@ h = hashlib.md5(word.lower().encode()).hexdigest()
 # bucket = "df" -> df.parquet
 # search for hash = "53ca268240ca76670c8566ee54568a"
 ```
+
+---
+
+## POS Data
+
+### Overview
+
+Part-of-speech tags are stored in a parallel set of 256 parquet files under a separate directory, using the same hash-bucketing scheme. POS data must be downloaded independently from frequency data.
+
+### File Structure
+
+```
+~/.gngram-lookup/pos-data/
+├── 00.parquet
+├── 01.parquet
+├── ...
+└── ff.parquet
+```
+
+### Schema
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `hash` | `str` | 30-char MD5 suffix (prefix is the filename) |
+| `pos` | `str` | Pipe-separated POS tags, e.g. `"ADJ\|ADV\|VERB"` |
+
+### Tag Set
+
+Google Books Ngram uses its own tag set (not Penn Treebank):
+
+| Tag | Description |
+|-----|-------------|
+| `NOUN` | Noun |
+| `VERB` | Verb |
+| `ADJ` | Adjective |
+| `ADV` | Adverb |
+| `PRON` | Pronoun |
+| `DET` | Determiner |
+| `ADP` | Adposition |
+| `NUM` | Numeral |
+| `CONJ` | Conjunction |
+| `PRT` | Particle |
+| `X` | Other / foreign |
+
+Words with multiple attested uses (e.g. "fast" as adjective, adverb, and verb) have all tags stored pipe-separated in a single row.
+
+---
+
+## Why Hash-Bucketed?
+
+Words are distributed by MD5 hash to create uniformly-sized files. Looking up a word requires reading only one file, making lookups fast regardless of corpus size. Both frequency and POS data use the same bucketing scheme, so the same hash computation applies to both.
+
+---
 
 ## Data Source
 

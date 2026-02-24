@@ -21,8 +21,8 @@ from gngram_lookup.lookup import (
 from gngram_lookup.normalize import normalize, normalize_apostrophes, strip_accents
 
 
-class TestDataInstallation:
-    """First test: verify data is installed."""
+class TestFrequencyDataInstallation:
+    """First test: verify frequency data is installed."""
 
     def test_data_is_installed(self):
         """Data must be installed to run tests."""
@@ -231,8 +231,8 @@ class TestBatchFrequency:
         assert "sum_df" in data
 
 
-class TestEdgeCases:
-    """Tests for edge cases and unusual inputs."""
+class TestFrequencyEdgeCases:
+    """Tests for edge cases and unusual inputs for frequency lookup."""
 
     def test_accented_word_resolves_to_ascii(self):
         # Accented words should resolve via accent stripping
@@ -277,8 +277,8 @@ class TestEdgeCases:
         assert isinstance(result, bool)
 
 
-class TestCaching:
-    """Tests to verify caching behavior works correctly."""
+class TestFrequencyCaching:
+    """Tests to verify frequency lookup caching behavior works correctly."""
 
     def test_repeated_lookups_same_result(self):
         result1 = frequency("the")

@@ -65,9 +65,52 @@ ng.exists('receive')    # True
 ng.exists('recieve')    # False (misspelling)
 ```
 
+### Part-of-Speech Filtering
+
+Filter tokens by grammatical role using corpus-attested POS tags:
+
+```python
+import gngram_lookup as ng
+
+tokens = ['run', 'quickly', 'the', 'blue', 'jump']
+verbs = [t for t in tokens if ng.has_pos(t, ng.PosTag.VERB)]
+# ['run', 'jump']  (corpus-attested verbs)
+
+adjectives = [t for t in tokens if ng.has_pos(t, ng.PosTag.ADJ)]
+# ['blue']
+```
+
+### Ambiguity Detection
+
+Find words that function as multiple parts of speech:
+
+```python
+import gngram_lookup as ng
+
+words = ['fast', 'run', 'light', 'book']
+for word in words:
+    tags = ng.pos(word)
+    if len(tags) > 1:
+        print(f"{word}: {tags}")
+# fast: ['ADJ', 'ADV', 'VERB']
+# run:  ['NOUN', 'VERB']
+# light: ['ADJ', 'NOUN', 'VERB']
+# book:  ['NOUN', 'VERB']
+```
+
+### Shell Scripting with POS
+
+Use POS checks in shell pipelines:
+
+```bash
+if gngram-has-pos "$word" VERB; then
+    echo "$word can function as a verb"
+fi
+```
+
 ## What This Package Does Not Do
 
 - No definitions or semantics (use a dictionary)
 - No spell correction or suggestions
-- No part-of-speech tagging
 - No per-year granularity (decades only)
+- POS tags are corpus-attested (statistical), not rule-based

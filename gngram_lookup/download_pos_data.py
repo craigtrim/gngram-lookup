@@ -14,7 +14,7 @@ from io import BytesIO
 from pathlib import Path
 
 GITHUB_REPO = "craigtrim/gngram-lookup"
-POS_DATA_VERSION = "v1.0.0"
+POS_DATA_VERSION = "v1.1.0"
 POS_DATA_FILENAME = "parquet-pos.tar.gz"
 
 POS_DATA_DIR = Path.home() / ".gngram-lookup" / "pos-data"
@@ -72,6 +72,14 @@ def download_and_extract() -> None:
 
     parquet_files = list(POS_DATA_DIR.glob("**/*.parquet"))
     print(f"Done: {len(parquet_files)} parquet files installed to {POS_DATA_DIR}")
+
+
+def ensure_pos_data() -> None:
+    """Download POS data if not already installed. No prompts."""
+    if POS_DATA_DIR.exists() and any(POS_DATA_DIR.glob("**/*.parquet")):
+        print(f"POS data already installed at {POS_DATA_DIR}")
+        return
+    download_and_extract()
 
 
 def main() -> None:

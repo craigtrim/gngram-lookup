@@ -7,7 +7,7 @@ from pathlib import Path
 from gngram_lookup import get_data_dir, get_hash_file, is_data_installed
 
 
-class TestDataDir:
+class TestFrequencyDataDir:
     """Tests for get_data_dir()."""
 
     def test_get_data_dir_returns_path(self):
@@ -24,7 +24,7 @@ class TestDataDir:
         assert result1 == result2
 
 
-class TestIsDataInstalled:
+class TestIsFrequencyDataInstalled:
     """Tests for is_data_installed()."""
 
     def test_is_data_installed_returns_bool(self):
@@ -36,7 +36,7 @@ class TestIsDataInstalled:
         assert is_data_installed() is True
 
 
-class TestGetHashFile:
+class TestGetFrequencyHashFile:
     """Tests for get_hash_file()."""
 
     def test_get_hash_file_returns_path(self):

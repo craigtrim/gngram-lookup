@@ -1,6 +1,6 @@
-.PHONY: all install test lint clean build-hash package-release release download-data build-pos package-pos-release release-pos download-pos-data
+.PHONY: all install test lint clean build-hash package-release release download-data build-pos package-pos-release release-pos download-pos-data ensure-data ensure-pos-data
 
-all: install test
+all: install ensure-data ensure-pos-data test
 
 install:
 	poetry install
@@ -31,16 +31,26 @@ release: package-release
 	gh release create $(VERSION) parquet-hash.tar.gz --title "$(VERSION)" --notes "Data release $(VERSION)"
 	@echo "Update DATA_VERSION in gngram_lookup/download_data.py to $(VERSION)"
 
-# Download data files (for end users)
+# Download data if not already installed (used by make all)
+ensure-data:
+	poetry run python -c "from gngram_lookup.download_data import ensure_data; ensure_data()"
+
+# Download POS data if not already installed (used by make all)
+ensure-pos-data:
+	poetry run python -c "from gngram_lookup.download_pos_data import ensure_pos_data; ensure_pos_data()"
+
+# Download data files (for end users, prompts before overwriting)
 download-data:
 	poetry run python -m gngram_lookup.download_data
 
 # Build POS hash files from raw Google Ngram source files
+# Override workers with: make build-pos PARALLEL=4
+PARALLEL ?= $(shell python3 -c "import os; print(os.cpu_count())")
 build-pos:
 	rm -rf pos-hash
 	poetry run python -m builder.build_pos_files \
 		"/Volumes/WD06-6/Misc Output/Google Unigrams/txt" \
-		pos-hash
+		pos-hash --parallel $(PARALLEL)
 
 # Package POS hash files for GitHub release
 package-pos-release:
