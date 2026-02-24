@@ -37,8 +37,9 @@ ng.frequency('computer')
 # {'peak_tf': 2000, 'peak_df': 2000, 'sum_tf': 892451, 'sum_df': 312876}
 
 # Part-of-speech tags
-ng.pos('fast')               # ['ADJ', 'ADV', 'VERB']
-ng.has_pos('sing', ng.PosTag.VERB)  # True
+ng.pos('fast')                        # ['.', 'ADJ', 'ADP', 'ADV', 'CONJ', 'DET', ...]
+ng.pos('fast', min_tf=1_000_000)      # ['ADJ', 'ADV', 'NOUN']  — dominant tags only
+ng.has_pos('sing', ng.PosTag.VERB)    # True
 ```
 
 ## Features
