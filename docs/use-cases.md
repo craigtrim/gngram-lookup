@@ -103,7 +103,7 @@ for word in words:
 Use POS checks in shell pipelines:
 
 ```bash
-if gngram-has-pos "$word" VERB; then
+if has-pos "$word" VERB; then
     echo "$word can function as a verb"
 fi
 ```

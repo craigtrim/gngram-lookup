@@ -44,6 +44,22 @@ for word, freq in results.items():
         print(f"{word}: not found")
 ```
 
+### `word_score(word: str) -> int | None`
+
+Return a 1–100 commonness score. **1 = most common, 100 = least common.** Returns `None` if the word is not in the corpus.
+
+Score is log-normalized against the most frequent word in the corpus ("the"), so the Zipfian spike at the top is compressed into the first few numbers and the rest of the vocabulary gets meaningful resolution.
+
+```python
+import gngram_lookup as ng
+
+ng.word_score('the')          # 1
+ng.word_score('computer')     # 18
+ng.word_score('algorithm')    # 40
+ng.word_score('rucksack')     # 58
+ng.word_score('xyznotaword')  # None
+```
+
 ### `pos(word: str, min_tf: int | None = None) -> list[str]`
 
 Return all part-of-speech tags attested for a word in the Google Books Ngram corpus. Tags use Google's own tag set. Returns an empty list if the word is not found.

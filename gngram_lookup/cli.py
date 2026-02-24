@@ -9,7 +9,7 @@ from gngram_lookup.pos import has_pos, pos, pos_freq, PosTag
 def gngram_exists() -> None:
     """Check if a word exists in the ngram data."""
     if len(sys.argv) != 2:
-        print("Usage: gngram-exists <word>")
+        print("Usage: exists <word>")
         sys.exit(1)
 
     word = sys.argv[1]
@@ -21,7 +21,7 @@ def gngram_exists() -> None:
 def gngram_freq() -> None:
     """Get frequency data for a word."""
     if len(sys.argv) != 2:
-        print("Usage: gngram-freq <word>")
+        print("Usage: freq <word>")
         sys.exit(1)
 
     word = sys.argv[1]
@@ -40,7 +40,7 @@ def gngram_freq() -> None:
 def gngram_score() -> None:
     """Get commonness score (1=most common, 100=least common) for a word."""
     if len(sys.argv) != 2:
-        print("Usage: ng-score <word>")
+        print("Usage: score <word>")
         sys.exit(1)
 
     word = sys.argv[1]
@@ -56,7 +56,7 @@ def gngram_score() -> None:
 def gngram_pos() -> None:
     """Get POS tags for a word."""
     if len(sys.argv) != 2:
-        print("Usage: gngram-pos <word>")
+        print("Usage: pos <word>")
         sys.exit(1)
 
     word = sys.argv[1]
@@ -72,7 +72,7 @@ def gngram_pos() -> None:
 def gngram_pos_freq() -> None:
     """Get POS tags and their corpus frequencies for a word."""
     if len(sys.argv) != 2:
-        print("Usage: gngram-pos-freq <word>")
+        print("Usage: pos-freq <word>")
         sys.exit(1)
 
     word = sys.argv[1]
@@ -89,7 +89,7 @@ def gngram_pos_freq() -> None:
 def gngram_has_pos() -> None:
     """Check if a word has a specific POS tag."""
     if len(sys.argv) != 3:
-        print("Usage: gngram-has-pos <word> <tag>")
+        print("Usage: has-pos <word> <tag>")
         print(f"Tags: {' '.join(t.value for t in PosTag)}")
         sys.exit(1)
 

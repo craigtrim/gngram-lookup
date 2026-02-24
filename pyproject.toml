@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "gngram-lookup"
 packages = [{include = "gngram_lookup"}]
-version = "1.2.0"
+version = "1.2.1"
 description = "Static Hash-Based Lookup for Google Ngram Frequencies"
 authors = ["Craig Trim <craigtrim@gmail.com>"]
 maintainers = ["Craig Trim <craigtrim@gmail.com>"]
@@ -32,12 +32,12 @@ classifiers = [
 ]
 
 [tool.poetry.scripts]
-ng-score = "gngram_lookup.cli:gngram_score"
-ng-exists = "gngram_lookup.cli:gngram_exists"
-ng-freq = "gngram_lookup.cli:gngram_freq"
-ng-pos = "gngram_lookup.cli:gngram_pos"
-ng-pos-freq = "gngram_lookup.cli:gngram_pos_freq"
-ng-has-pos = "gngram_lookup.cli:gngram_has_pos"
+score = "gngram_lookup.cli:gngram_score"
+exists = "gngram_lookup.cli:gngram_exists"
+freq = "gngram_lookup.cli:gngram_freq"
+pos = "gngram_lookup.cli:gngram_pos"
+pos-freq = "gngram_lookup.cli:gngram_pos_freq"
+has-pos = "gngram_lookup.cli:gngram_has_pos"
 
 [tool.poetry.build]
 generate-setup-file = true
