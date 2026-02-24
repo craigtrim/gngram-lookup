@@ -61,12 +61,12 @@ Words are scored 1–100 based on their total corpus frequency, log-normalized a
 
 | Score | Zone | Description | Examples |
 |-------|------|-------------|----------|
-| 1–5 | Zipf | Function words dominating millions of books | the, of, and, to, a |
-| 6–20 | Core | Everyday words known by all speakers | computer, walk, beautiful |
-| 21–40 | Literary | Vocabulary of books, not everyday speech | algorithm, philosophy, synthesis |
-| 41–60 | Specialized vocabulary | Domain-specific but attested | rucksack, carbonate, heliotrope |
-| 61–80 | Rare vocabulary | Infrequent but legitimate | arcane technical and literary terms |
-| 81–100 | Long tail | Extremely low frequency | niche, archaic, or highly specialized |
+| 1–5 | ![Zipf](https://img.shields.io/badge/Zipf-3498db?style=flat-square) | Function words dominating millions of books | the, of, and, to, a |
+| 6–20 | ![Core](https://img.shields.io/badge/Core-2ecc71?style=flat-square) | Everyday words known by all speakers | computer, walk, beautiful |
+| 21–40 | ![Literary](https://img.shields.io/badge/Literary-f39c12?style=flat-square) | Vocabulary of books, not everyday speech | algorithm, philosophy, synthesis |
+| 41–60 | ![Specialized](https://img.shields.io/badge/Specialized-e74c3c?style=flat-square) | Domain-specific but attested | rucksack, carbonate, heliotrope |
+| 61–80 | ![Rare](https://img.shields.io/badge/Rare-9b59b6?style=flat-square) | Infrequent but legitimate | arcane technical and literary terms |
+| 81–100 | ![Long Tail](https://img.shields.io/badge/Long_Tail-e67e22?style=flat-square) | Extremely low frequency | niche, archaic, or highly specialized |
 
 ```python
 import gngram_lookup as ng
