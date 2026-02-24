@@ -72,10 +72,10 @@ Words are scored 1–100 based on their total corpus frequency, log-normalized a
 import gngram_lookup as ng
 
 # Score a word
-ng.word_score('the')          # 1   (Zipfian summit)
-ng.word_score('computer')     # 18  (Core vocabulary)
-ng.word_score('algorithm')    # 40  (Educated vocabulary)
-ng.word_score('rucksack')     # 58  (Specialized vocabulary)
+ng.word_score('the')          # 1   (Zipf)
+ng.word_score('computer')     # 18  (Core)
+ng.word_score('algorithm')    # 40  (Literary)
+ng.word_score('rucksack')     # 58  (Specialized)
 
 # Filter to common words only
 def is_common(word):
