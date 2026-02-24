@@ -2,7 +2,7 @@
 
 import sys
 
-from gngram_lookup.lookup import exists, frequency
+from gngram_lookup.lookup import exists, frequency, word_score
 from gngram_lookup.pos import has_pos, pos, pos_freq, PosTag
 
 
@@ -34,6 +34,22 @@ def gngram_freq() -> None:
     print(f"peak_df_decade: {result['peak_df']}")
     print(f"sum_tf: {result['sum_tf']}")
     print(f"sum_df: {result['sum_df']}")
+    sys.exit(0)
+
+
+def gngram_score() -> None:
+    """Get commonness score (1=most common, 100=least common) for a word."""
+    if len(sys.argv) != 2:
+        print("Usage: ng-score <word>")
+        sys.exit(1)
+
+    word = sys.argv[1]
+    result = word_score(word)
+    if result is None:
+        print("None")
+        sys.exit(1)
+
+    print(result)
     sys.exit(0)
 
 

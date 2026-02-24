@@ -12,6 +12,7 @@ possessives, and hyphenated compounds are absent. Fallback strategies:
 from __future__ import annotations
 
 import hashlib
+import math
 from functools import lru_cache
 from typing import TypedDict
 
@@ -193,6 +194,25 @@ def frequency(word: str) -> FrequencyData | None:
             return _lookup_frequency(hyp_parts[0])
 
     return None
+
+
+_MAX_TF = 26_500_000_000  # approximate sum_tf for "the"
+
+
+def word_score(word: str) -> int | None:
+    """Return a 1-100 commonness score (1 = most common, 100 = least common).
+
+    Uses log-normalized sum_tf against the most frequent word in the corpus.
+    Returns None if the word is not found.
+    """
+    freq = frequency(word)
+    if not freq:
+        return None
+    tf = freq["sum_tf"]
+    if tf <= 0:
+        return 100
+    log_score = math.log10(tf) / math.log10(_MAX_TF)
+    return max(1, round(100 * (1 - log_score)))
 
 
 def batch_frequency(words: list[str]) -> dict[str, FrequencyData | None]:
