@@ -61,9 +61,9 @@ Words are scored 1–100 based on their total corpus frequency, log-normalized a
 
 | Score | Zone | Description | Examples |
 |-------|------|-------------|----------|
-| 1–5 | Zipfian summit | Function words dominating millions of books | the, of, and, to, a |
-| 6–20 | Core vocabulary | Everyday words known by all speakers | computer, walk, beautiful |
-| 21–40 | Educated vocabulary | Standard written English | algorithm, philosophy, synthesis |
+| 1–5 | Zipf | Function words dominating millions of books | the, of, and, to, a |
+| 6–20 | Core | Everyday words known by all speakers | computer, walk, beautiful |
+| 21–40 | Literary | Vocabulary of books, not everyday speech | algorithm, philosophy, synthesis |
 | 41–60 | Specialized vocabulary | Domain-specific but attested | rucksack, carbonate, heliotrope |
 | 61–80 | Rare vocabulary | Infrequent but legitimate | arcane technical and literary terms |
 | 81–100 | Long tail | Extremely low frequency | niche, archaic, or highly specialized |
