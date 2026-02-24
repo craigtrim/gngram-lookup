@@ -5,42 +5,114 @@
 [![Downloads/Month](https://pepy.tech/badge/gngram-lookup/month)](https://pepy.tech/project/gngram-lookup)
 [![Tests](https://img.shields.io/badge/tests-194-brightgreen)](https://github.com/craigtrim/gngram-lookup/tree/main/tests)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-Word frequency and part-of-speech tags from 500 years of books. O(1) lookup. 5 million words.
+**How common is this word? O(1) answer. 500 years of books. 5 million words.**
 
-## Install
+Word frequency, commonness scores, and part-of-speech tags derived from the Google Books Ngram corpus, the largest longitudinal word-frequency dataset ever compiled.
+
+## Quick Start
 
 ```bash
 pip install gngram-lookup
 python -m gngram_lookup.download_data       # frequency data, ~110 MB
-python -m gngram_lookup.download_pos_data   # POS tag data, separate download
+python -m gngram_lookup.download_pos_data   # POS tag data, optional
 ```
-
-## Python
 
 ```python
 import gngram_lookup as ng
 
-ng.exists('computer')       # True
-ng.exists('xyznotaword')    # False
+# Does this word exist in 500 years of print?
+ng.exists('computer')        # True
+ng.exists('xyznotaword')     # False
 
+# How common is it? (1=most common, 100=least common)
+ng.word_score('the')         # 1
+ng.word_score('computer')    # 18
+ng.word_score('rucksack')    # 58
+ng.word_score('xyznotaword') # None
+
+# Full frequency data
 ng.frequency('computer')
 # {'peak_tf': 2000, 'peak_df': 2000, 'sum_tf': 892451, 'sum_df': 312876}
 
-ng.batch_frequency(['the', 'algorithm', 'xyznotaword'])
-# {'the': {...}, 'algorithm': {...}, 'xyznotaword': None}
-
-ng.word_score('the')                     # 1  (most common)
-ng.word_score('computer')               # 18
-ng.word_score('rucksack')               # 58
-ng.word_score('xyznotaword')            # None
-
-ng.pos('fast')                           # ['ADJ', 'ADV', 'VERB']
-ng.pos('corn', min_tf=100000)            # ['ADJ', 'NOUN']
-ng.pos_freq('corn')                      # {'NOUN': 11722803, 'ADJ': 1433642, ...}
-ng.has_pos('sing', ng.PosTag.VERB)       # True
-ng.has_pos('sing', ng.PosTag.VERB, min_tf=1000)  # True
+# Part-of-speech tags
+ng.pos('fast')               # ['ADJ', 'ADV', 'VERB']
+ng.has_pos('sing', ng.PosTag.VERB)  # True
 ```
+
+## Features
+
+- **O(1) Lookups** - Hash-bucketed parquet files, no full scan
+- **5 Million Words** - Broadest vocabulary coverage of any static lookup package
+- **500 Years of Data** - 1500s through 2000s, decade-by-decade
+- **Word Score** - 1–100 commonness scale, log-normalized against the corpus
+- **Peak Decade** - Know when a word was most used in print
+- **POS Tags** - Part-of-speech tags from Google's own tag set
+- **Batch Lookup** - Efficient multi-word queries grouped by hash prefix
+- **Possessive & Hyphen Fallback** - `ship's` → `ship`, `north-west` → `north`
+- **Unicode Normalization** - Smart quotes, accents, and Unicode apostrophes handled
+
+## Word Score Zones
+
+Words are scored 1–100 based on their total corpus frequency, log-normalized against `the` (the most frequent word). The scale compresses the Zipfian spike at the top and gives meaningful resolution across the rest of the vocabulary.
+
+![gngram-lookup Word Score Zones](https://raw.githubusercontent.com/craigtrim/gngram-lookup/main/docs/images/word_score_zones.png)
+
+| Score | Zone | Description | Examples |
+|-------|------|-------------|----------|
+| 1–5 | Zipfian summit | Function words dominating millions of books | the, of, and, to, a |
+| 6–20 | Core vocabulary | Everyday words known by all speakers | computer, walk, beautiful |
+| 21–40 | Educated vocabulary | Standard written English | algorithm, philosophy, synthesis |
+| 41–60 | Specialized vocabulary | Domain-specific but attested | rucksack, carbonate, heliotrope |
+| 61–80 | Rare vocabulary | Infrequent but legitimate | arcane technical and literary terms |
+| 81–100 | Long tail | Extremely low frequency | niche, archaic, or highly specialized |
+
+```python
+import gngram_lookup as ng
+
+# Score a word
+ng.word_score('the')          # 1   (Zipfian summit)
+ng.word_score('computer')     # 18  (Core vocabulary)
+ng.word_score('algorithm')    # 40  (Educated vocabulary)
+ng.word_score('rucksack')     # 58  (Specialized vocabulary)
+
+# Filter to common words only
+def is_common(word):
+    score = ng.word_score(word)
+    return score is not None and score <= 30
+```
+
+## The Problem This Solves
+
+In NLP, you frequently need to know not just whether a token is a word, but **how common it is**.
+
+Not "what does it mean?" Not "what's its etymology?" Just: is this a word real people actually write, and how often?
+
+No other static lookup package gives you this from a corpus spanning 500 years of print at 5 million word coverage with O(1) access.
+
+## Why Google Books Ngrams?
+
+The Google Books Ngram corpus isn't a dictionary (too narrow). It isn't a web crawl (too noisy). It isn't limited to a single decade or language register.
+
+It's **a statistical analysis of over 8 million books** spanning the 1500s to the 2000s, one of the largest datasets ever assembled for studying how language changes over time. The frequency data captures real written usage at a scale no other freely available corpus matches.
+
+If a word appears in this corpus with meaningful frequency, it's a word that real writers actually used.
+
+## When to Use This
+
+- **Vocabulary filtering** - Score words to keep common ones, discard rare ones
+- **NLP preprocessing** - Filter candidates before expensive model calls
+- **Content analysis** - Measure the reading level or register of a text
+- **Spell-check pre-filtering** - Reject low-scoring tokens before fuzzy matching
+- **Temporal analysis** - Find when a word peaked in usage
+- **POS disambiguation** - Resolve ambiguous tokens using corpus-attested tags
+
+## What This Doesn't Do
+
+- No definitions, synonyms, or semantic relationships (use spaCy or WordNet for that)
+- No spell-checking or suggestions (just existence and frequency)
+- No real-time or web data (this is a static corpus snapshot)
 
 ## CLI
 
@@ -48,20 +120,22 @@ ng.has_pos('sing', ng.PosTag.VERB, min_tf=1000)  # True
 exists computer       # True, exit 0
 exists xyznotaword    # False, exit 1
 
+score computer        # 18
+score xyznotaword     # None, exit 1
+
 freq computer
 # peak_tf_decade: 2000
 # peak_df_decade: 2000
 # sum_tf: 892451
 # sum_df: 312876
 
-score computer        # 18
 pos fast              # ADJ ADV VERB
 pos-freq corn         # ADJ: 1,433,642 / NOUN: 11,722,803 / VERB: 85,411
 has-pos sing VERB     # True, exit 0
 has-pos fast NOUN     # False, exit 1
 ```
 
-## Docs
+## Documentation
 
 - [API Reference](https://github.com/craigtrim/gngram-lookup/blob/main/docs/api.md)
 - [CLI Reference](https://github.com/craigtrim/gngram-lookup/blob/main/docs/cli.md)
@@ -69,10 +143,20 @@ has-pos fast NOUN     # False, exit 1
 - [Use Cases](https://github.com/craigtrim/gngram-lookup/blob/main/docs/use-cases.md)
 - [Development](https://github.com/craigtrim/gngram-lookup/blob/main/docs/development.md)
 
+## Development
+
+```bash
+git clone https://github.com/craigtrim/gngram-lookup.git
+cd gngram-lookup
+make install   # Install dependencies
+make test      # Run tests
+make all       # Full pipeline
+```
+
 ## See Also
 
-- [bnc-lookup](https://pypi.org/project/bnc-lookup/) - O(1) lookup for British National Corpus
-- [wordnet-lookup](https://pypi.org/project/wordnet-lookup/) - O(1) lookup for WordNet
+- **[bnc-lookup](https://pypi.org/project/bnc-lookup/)** - O(1) lookup for British National Corpus (669k words, zero setup)
+- **[wordnet-lookup](https://pypi.org/project/wordnet-lookup/)** - O(1) lookup for WordNet
 
 ## Attribution
 
@@ -80,4 +164,14 @@ Data derived from the [Google Books Ngram](https://books.google.com/ngrams) data
 
 ## License
 
-Proprietary. See [LICENSE](https://github.com/craigtrim/gngram-lookup/blob/main/LICENSE).
+This package is dual-licensed:
+- **Software**: MIT License
+- **Ngram Data**: Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+
+See [LICENSE](https://github.com/craigtrim/gngram-lookup/blob/main/LICENSE) for complete terms.
+
+## Links
+
+- **Repository**: [github.com/craigtrim/gngram-lookup](https://github.com/craigtrim/gngram-lookup)
+- **PyPI**: [pypi.org/project/gngram-lookup](https://pypi.org/project/gngram-lookup)
+- **Author**: Craig Trim ([craigtrim@gmail.com](mailto:craigtrim@gmail.com))
