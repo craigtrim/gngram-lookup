@@ -51,6 +51,7 @@ ng.has_pos('sing', ng.PosTag.VERB)    # True
 - **Peak Decade** - Know when a word was most used in print
 - **POS Tags** - Part-of-speech tags from Google's own tag set
 - **Batch Lookup** - Efficient multi-word queries grouped by hash prefix
+- **Prefix Clustering** - Find all corpus words sharing a prefix; handles y-drop allomorphs
 - **Possessive & Hyphen Fallback** - `ship's` → `ship`, `north-west` → `north`
 - **Unicode Normalization** - Smart quotes, accents, and Unicode apostrophes handled
 
@@ -138,10 +139,20 @@ has-pos sing VERB     # True, exit 0
 has-pos fast NOUN     # False, exit 1
 ```
 
+### Prefix Cluster Script
+
+Show all corpus words sharing a prefix with a given word, ranked by frequency:
+
+```bash
+poetry run python scripts/cluster.py happy --sort freq --with-freq --min-tf 100000
+# 4 results written to /tmp/cluster_happy.txt
+```
+
 ## Documentation
 
 - [API Reference](https://github.com/craigtrim/gngram-lookup/blob/main/docs/api.md)
 - [CLI Reference](https://github.com/craigtrim/gngram-lookup/blob/main/docs/cli.md)
+- [Wordlist and Prefix Clustering](https://github.com/craigtrim/gngram-lookup/blob/main/docs/wordlist.md)
 - [Data Format](https://github.com/craigtrim/gngram-lookup/blob/main/docs/data-format.md)
 - [Use Cases](https://github.com/craigtrim/gngram-lookup/blob/main/docs/use-cases.md)
 - [Development](https://github.com/craigtrim/gngram-lookup/blob/main/docs/development.md)

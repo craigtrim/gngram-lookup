@@ -124,6 +124,61 @@ if has-pos "$word" VERB; then
 fi
 ```
 
+### `scripts/cluster.py`
+
+Show all corpus words sharing a prefix with a given root word. Output is written to a file; the path is printed to stdout on completion.
+
+```bash
+poetry run python scripts/cluster.py <word> [--sort alpha|freq] [--with-freq] [--min-tf N] [--output PATH]
+```
+
+**Options**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--sort alpha` | default | Alphabetical order |
+| `--sort freq` | | Descending corpus frequency |
+| `--with-freq` | off | Write frequency alongside each word |
+| `--min-tf N` | `0` | Skip words with corpus frequency below N |
+| `--output PATH` | `/tmp/cluster_<word>.txt` | Output file or directory |
+
+If `--output` points to a directory (or ends with `/`), the file `cluster_<word>.txt` is created inside it. If omitted, output goes to `/tmp/cluster_<word>.txt`.
+
+**Examples**
+
+```bash
+# Alphabetical, default output location
+poetry run python scripts/cluster.py drink
+# 47 results written to /tmp/cluster_drink.txt
+
+# Ranked by frequency, with counts, noise filtered
+poetry run python scripts/cluster.py happy --sort freq --with-freq --min-tf 100000
+# 4 results written to /tmp/cluster_happy.txt
+
+# Custom output file
+poetry run python scripts/cluster.py happy --output /tmp/my-output.txt
+
+# Custom output directory
+poetry run python scripts/cluster.py happy --output /tmp/mydir/
+# 47 results written to /tmp/mydir/cluster_happy.txt
+```
+
+The output file for `--sort freq --with-freq` looks like:
+
+```
+happiness    31,414,547
+happily       9,336,058
+happier       4,460,678
+happiest      2,393,091
+```
+
+The y-drop allomorphic alternation is handled automatically. For a root ending in `-y`, the script also scans the stem and accepts continuations with `y` or `i`:
+
+```bash
+poetry run python scripts/cluster.py mercy --sort freq --with-freq --min-tf 10000
+# 4 results written to /tmp/cluster_mercy.txt
+```
+
 ### `python -m gngram_lookup.download_data`
 
 Download frequency data files (~110 MB). Required before first use of frequency/exists functions.

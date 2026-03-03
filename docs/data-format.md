@@ -13,10 +13,11 @@ The corpus is split into 256 parquet files (`00.parquet` to `ff.parquet`), bucke
 ├── 00.parquet
 ├── 01.parquet
 ├── ...
-└── ff.parquet
+├── ff.parquet
+└── wordlist.parquet
 ```
 
-Each file contains ~19,500 words (~430 KB per file).
+Each hash bucket file contains ~19,500 words (~430 KB per file). `wordlist.parquet` contains all 5,001,090 unique words sorted alphabetically — see [wordlist.md](wordlist.md) for details.
 
 ### Schema
 

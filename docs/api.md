@@ -107,6 +107,73 @@ ng.has_pos('corn', ng.PosTag.NOUN, min_tf=100000)   # True (11.7M >= 100k)
 
 Raises `FileNotFoundError` if POS data has not been downloaded.
 
+### `wordlist(min_tf: int = 0) -> list[str]`
+
+Return the full sorted vocabulary of the Google Books corpus. The list is alphabetically sorted and loaded from `wordlist.parquet`.
+
+```python
+import gngram_lookup as ng
+
+words = ng.wordlist()                 # all 5,001,090 words
+words = ng.wordlist(min_tf=10_000)    # ~360k words, OCR noise suppressed
+words = ng.wordlist(min_tf=1_000_000) # ~28k words, general vocabulary
+```
+
+`min_tf` filters by cumulative corpus frequency (`sum_tf`). At zero (default) all entries are returned, including OCR noise and hapax legomena.
+
+Raises `FileNotFoundError` if frequency data has not been downloaded.
+
+### `prefix_cluster(word: str, min_len: int = 5, min_tf: int = 0, sort_by: Literal["alpha", "freq"] = "alpha", with_freq: bool = False) -> list[str] | list[tuple[str, int]]`
+
+Return all corpus words that are longer than `word` and share its prefix. Handles the y-drop allomorphic alternation automatically.
+
+**Parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `word` | `str` | required | Root word to cluster from |
+| `min_len` | `int` | `5` | Skip words shorter than this; prevents noise from short roots |
+| `min_tf` | `int` | `0` | Minimum corpus frequency; use to suppress OCR noise |
+| `sort_by` | `"alpha"` or `"freq"` | `"alpha"` | Sort order: alphabetical or descending corpus frequency |
+| `with_freq` | `bool` | `False` | Return `(word, sum_tf)` tuples instead of plain strings |
+
+**Return type**
+
+- `list[str]` when `with_freq=False` (default)
+- `list[tuple[str, int]]` when `with_freq=True`
+
+```python
+import gngram_lookup as ng
+
+# Alphabetical, strings only (default)
+ng.prefix_cluster("drink")
+# ['drinker', 'drinking', 'drinkable', 'drinks', ...]
+
+# Ranked by corpus frequency
+ng.prefix_cluster("drink", sort_by="freq")
+# ['drinking', 'drinks', 'drinker', ...]
+
+# With frequency values
+ng.prefix_cluster("drink", sort_by="freq", with_freq=True)
+# [('drinking', 84_512_908), ('drinks', 12_043_217), ('drinker', 3_201_445), ...]
+
+# Filter noise; combine with frequency sort
+ng.prefix_cluster("happy", sort_by="freq", with_freq=True, min_tf=100_000)
+# [('happiness', 31414547), ('happily', 9336058), ('happier', 4460678), ('happiest', 2393091)]
+```
+
+**y-drop allomorphic variant**
+
+For words ending in `-y`, the stem (word minus `y`) is scanned and only continuations with `y` or `i` are accepted. This prevents false matches while capturing the most common derivational pattern:
+
+```python
+ng.prefix_cluster("mercy")
+# ['merciful', 'mercifulness', 'merciless', 'mercilessly', ...]
+# "mercantile" is excluded because it continues the stem with 'a', not 'y' or 'i'
+```
+
+Raises `FileNotFoundError` if frequency data has not been downloaded.
+
 ### `is_data_installed() -> bool`
 
 Check if frequency data files have been downloaded.
