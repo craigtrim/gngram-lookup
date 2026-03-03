@@ -1,4 +1,4 @@
-.PHONY: all install test lint clean build-hash package-release release download-data build-pos package-pos-release release-pos download-pos-data ensure-data ensure-pos-data
+.PHONY: all install test lint clean build-hash package-release release download-data build-pos package-pos-release release-pos download-pos-data ensure-data ensure-pos-data suffix-analysis suffix-collocations
 
 all: install ensure-data ensure-pos-data test
 
@@ -67,3 +67,11 @@ release-pos: package-pos-release
 # Download POS data files (for end users)
 download-pos-data:
 	poetry run python -m gngram_lookup.download_pos_data
+
+# Suffix frequency analysis (outputs scripts/suffix_counts.csv)
+suffix-analysis:
+	poetry run python scripts/suffix_analysis.py
+
+# Suffix collocation matrix (outputs scripts/suffix_collocations.csv)
+suffix-collocations:
+	poetry run python scripts/suffix_collocations.py
