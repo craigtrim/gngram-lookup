@@ -14,7 +14,7 @@ from io import BytesIO
 from pathlib import Path
 
 GITHUB_REPO = "craigtrim/gngram-lookup"
-DATA_VERSION = "v1.0.0"
+DATA_VERSION = "v1.1.0"
 DATA_FILENAME = "parquet-hash.tar.gz"
 
 DATA_DIR = Path.home() / ".gngram-lookup" / "data"

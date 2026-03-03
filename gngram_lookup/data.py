@@ -44,6 +44,26 @@ def is_data_installed() -> bool:
     return any(DATA_DIR.glob("**/*.parquet"))
 
 
+def get_wordlist_file() -> Path:
+    """Return path to the sorted wordlist parquet file.
+
+    Returns:
+        Path to wordlist.parquet (may be in subdirectory from tar extraction)
+    """
+    direct = DATA_DIR / "wordlist.parquet"
+    if direct.exists():
+        return direct
+
+    nested = DATA_DIR / "parquet-hash" / "wordlist.parquet"
+    if nested.exists():
+        return nested
+
+    raise FileNotFoundError(
+        "wordlist.parquet not found. "
+        "Run 'python -m gngram_lookup.download_data' to download the data files."
+    )
+
+
 def get_pos_hash_file(prefix: str) -> Path:
     """Return path to a specific POS hash bucket parquet file.
 

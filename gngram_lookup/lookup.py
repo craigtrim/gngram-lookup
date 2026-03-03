@@ -11,6 +11,7 @@ possessives, and hyphenated compounds are absent. Fallback strategies:
 
 from __future__ import annotations
 
+import bisect
 import hashlib
 import math
 from functools import lru_cache
@@ -18,7 +19,7 @@ from typing import TypedDict
 
 import polars as pl
 
-from gngram_lookup.data import get_hash_file, is_data_installed
+from gngram_lookup.data import get_hash_file, get_wordlist_file, is_data_installed
 from gngram_lookup.normalize import normalize
 
 
@@ -286,3 +287,97 @@ def batch_frequency(words: list[str]) -> dict[str, FrequencyData | None]:
                 results[word] = _lookup_frequency(hyp_parts[0])
 
     return results
+
+
+@lru_cache(maxsize=1)
+def _load_wordlist() -> tuple[list[str], list[int]]:
+    """Load and cache the sorted wordlist. Returns (words, sum_tfs)."""
+    df = pl.read_parquet(get_wordlist_file())
+    return df["word"].to_list(), df["sum_tf"].to_list()
+
+
+def wordlist(min_tf: int = 0) -> list[str]:
+    """Return the full sorted vocabulary list.
+
+    Args:
+        min_tf: Minimum sum_tf to include a word (0 = all words).
+
+    Returns:
+        Sorted list of words.
+
+    Raises:
+        FileNotFoundError: If data files are not installed.
+    """
+    if not is_data_installed():
+        raise FileNotFoundError(
+            "Data files not installed. Run: python -m gngram_lookup.download_data"
+        )
+    words, tfs = _load_wordlist()
+    if min_tf <= 0:
+        return list(words)
+    return [w for w, tf in zip(words, tfs) if tf >= min_tf]
+
+
+def prefix_cluster(word: str, min_len: int = 5, min_tf: int = 0) -> list[str]:
+    """Return all corpus words that share the same prefix as `word`.
+
+    Handles two cases:
+    1. Standard prefix match: all words longer than `word` that start with `word`.
+    2. y-drop allomorphic variant: for words ending in -y, drops the y and
+       clusters on the stem, accepting only continuations with y or i.
+
+    Args:
+        word: The root word to cluster from.
+        min_len: Minimum word length to attempt clustering (default 5).
+        min_tf: Minimum sum_tf for candidate words (0 = all).
+
+    Returns:
+        Sorted list of candidate inflections/derivations.
+
+    Raises:
+        FileNotFoundError: If data files are not installed.
+    """
+    if not is_data_installed():
+        raise FileNotFoundError(
+            "Data files not installed. Run: python -m gngram_lookup.download_data"
+        )
+
+    word = normalize(word)
+    if len(word) < min_len:
+        return []
+
+    words, tfs = _load_wordlist()
+
+    def _scan_prefix(prefix: str, accept: set[str] | None = None) -> list[str]:
+        """Return words that start with prefix and are longer than word."""
+        lo = bisect.bisect_left(words, prefix)
+        results = []
+        for i in range(lo, len(words)):
+            w = words[i]
+            if not w.startswith(prefix):
+                break
+            if len(w) <= len(word):
+                continue
+            if accept is not None and w[len(prefix)] not in accept:
+                continue
+            if min_tf > 0 and tfs[i] < min_tf:
+                continue
+            results.append(w)
+        return results
+
+    # Standard prefix match
+    candidates = _scan_prefix(word)
+
+    # y-drop allomorphic variant: "happy" -> stem "happ", accept y or i continuations
+    if word.endswith("y"):
+        stem = word[:-1]
+        y_candidates = _scan_prefix(stem, accept={"y", "i"})
+        # Merge, deduplicate, preserve sort order
+        seen = set(candidates)
+        for w in y_candidates:
+            if w not in seen:
+                candidates.append(w)
+                seen.add(w)
+        candidates.sort()
+
+    return candidates
