@@ -58,3 +58,32 @@ class TestPrefixCluster:
 
     def test_case_insensitive(self):
         assert prefix_cluster("DRINK") == prefix_cluster("drink")
+
+    def test_sort_by_freq_returns_list_str(self):
+        result = prefix_cluster("drink", sort_by="freq")
+        assert isinstance(result, list)
+        assert all(isinstance(w, str) for w in result)
+
+    def test_sort_by_freq_descending(self):
+        result = prefix_cluster("drink", sort_by="freq", with_freq=True)
+        tfs = [tf for _, tf in result]
+        assert tfs == sorted(tfs, reverse=True)
+
+    def test_with_freq_returns_tuples(self):
+        result = prefix_cluster("drink", with_freq=True)
+        assert all(isinstance(item, tuple) and len(item) == 2 for item in result)
+        assert all(isinstance(w, str) and isinstance(tf, int) for w, tf in result)
+
+    def test_with_freq_alpha_sorted(self):
+        result = prefix_cluster("drink", with_freq=True, sort_by="alpha")
+        words = [w for w, _ in result]
+        assert words == sorted(words)
+
+    def test_with_freq_freq_sorted(self):
+        result = prefix_cluster("drink", with_freq=True, sort_by="freq")
+        tfs = [tf for _, tf in result]
+        assert tfs == sorted(tfs, reverse=True)
+
+    def test_sort_by_alpha_default(self):
+        # default sort_by="alpha" matches explicit call
+        assert prefix_cluster("drink") == prefix_cluster("drink", sort_by="alpha")

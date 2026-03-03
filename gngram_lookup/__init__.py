@@ -1,7 +1,7 @@
 """gngram-lookup: Google Ngram frequency lookup."""
 
 from gngram_lookup.data import get_data_dir, get_hash_file, is_data_installed, is_pos_data_installed
-from gngram_lookup.lookup import FrequencyData, batch_frequency, exists, frequency, prefix_cluster, word_score, wordlist
+from gngram_lookup.lookup import FrequencyData, batch_frequency, erosion_cluster, exists, frequency, prefix_cluster, word_score, wordlist
 from gngram_lookup.pos import PosTag, has_pos, pos, pos_freq
 
 __all__ = [
@@ -16,6 +16,7 @@ __all__ = [
     "word_score",
     "wordlist",
     "prefix_cluster",
+    "erosion_cluster",
     "pos",
     "pos_freq",
     "has_pos",

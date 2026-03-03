@@ -15,7 +15,7 @@ import bisect
 import hashlib
 import math
 from functools import lru_cache
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 import polars as pl
 
@@ -318,7 +318,13 @@ def wordlist(min_tf: int = 0) -> list[str]:
     return [w for w, tf in zip(words, tfs) if tf >= min_tf]
 
 
-def prefix_cluster(word: str, min_len: int = 5, min_tf: int = 0) -> list[str]:
+def prefix_cluster(
+    word: str,
+    min_len: int = 5,
+    min_tf: int = 0,
+    sort_by: Literal["alpha", "freq"] = "alpha",
+    with_freq: bool = False,
+) -> list[str] | list[tuple[str, int]]:
     """Return all corpus words that share the same prefix as `word`.
 
     Handles two cases:
@@ -330,9 +336,11 @@ def prefix_cluster(word: str, min_len: int = 5, min_tf: int = 0) -> list[str]:
         word: The root word to cluster from.
         min_len: Minimum word length to attempt clustering (default 5).
         min_tf: Minimum sum_tf for candidate words (0 = all).
+        sort_by: Sort order — "alpha" (alphabetical) or "freq" (descending frequency).
+        with_freq: If True, return list[tuple[str, int]] with (word, sum_tf) pairs.
 
     Returns:
-        Sorted list of candidate inflections/derivations.
+        list[str] by default, or list[tuple[str, int]] when with_freq=True.
 
     Raises:
         FileNotFoundError: If data files are not installed.
@@ -348,8 +356,8 @@ def prefix_cluster(word: str, min_len: int = 5, min_tf: int = 0) -> list[str]:
 
     words, tfs = _load_wordlist()
 
-    def _scan_prefix(prefix: str, accept: set[str] | None = None) -> list[str]:
-        """Return words that start with prefix and are longer than word."""
+    def _scan_prefix(prefix: str, accept: set[str] | None = None) -> list[tuple[str, int]]:
+        """Return (word, sum_tf) pairs that start with prefix and are longer than word."""
         lo = bisect.bisect_left(words, prefix)
         results = []
         for i in range(lo, len(words)):
@@ -362,7 +370,7 @@ def prefix_cluster(word: str, min_len: int = 5, min_tf: int = 0) -> list[str]:
                 continue
             if min_tf > 0 and tfs[i] < min_tf:
                 continue
-            results.append(w)
+            results.append((w, tfs[i]))
         return results
 
     # Standard prefix match
@@ -372,12 +380,83 @@ def prefix_cluster(word: str, min_len: int = 5, min_tf: int = 0) -> list[str]:
     if word.endswith("y"):
         stem = word[:-1]
         y_candidates = _scan_prefix(stem, accept={"y", "i"})
-        # Merge, deduplicate, preserve sort order
-        seen = set(candidates)
-        for w in y_candidates:
-            if w not in seen:
-                candidates.append(w)
-                seen.add(w)
-        candidates.sort()
+        seen = {w for w, _ in candidates}
+        for pair in y_candidates:
+            if pair[0] not in seen:
+                candidates.append(pair)
+                seen.add(pair[0])
 
-    return candidates
+    if sort_by == "freq":
+        candidates.sort(key=lambda x: x[1], reverse=True)
+    else:
+        candidates.sort(key=lambda x: x[0])
+
+    if with_freq:
+        return candidates
+    return [w for w, _ in candidates]
+
+
+def erosion_cluster(
+    word: str,
+    min_len: int = 5,
+    min_tf: int = 0,
+    sort_by: Literal["alpha", "freq"] = "alpha",
+    with_freq: bool = False,
+) -> list[str] | list[tuple[str, int]]:
+    """Return corpus words that are morphological siblings of `word` via suffix erosion.
+
+    Progressively strips characters from the right of `word`, scanning the corpus
+    at each prefix length down to `min_len`. Words that share a prefix with `word`
+    but are not extensions of it are siblings — e.g. "homogenous" finds
+    "homogeneous", "homogeneity", "homogenize" via the common stem "homogen".
+
+    Args:
+        word: The root word to find siblings for.
+        min_len: Minimum prefix length to erode down to (default 5).
+        min_tf: Minimum sum_tf for candidate words (0 = all).
+        sort_by: Sort order — "alpha" (alphabetical) or "freq" (descending frequency).
+        with_freq: If True, return list[tuple[str, int]] with (word, sum_tf) pairs.
+
+    Returns:
+        list[str] by default, or list[tuple[str, int]] when with_freq=True.
+
+    Raises:
+        FileNotFoundError: If data files are not installed.
+    """
+    if not is_data_installed():
+        raise FileNotFoundError(
+            "Data files not installed. Run: python -m gngram_lookup.download_data"
+        )
+
+    word = normalize(word)
+    if len(word) <= min_len:
+        return []
+
+    words, tfs = _load_wordlist()
+
+    seen: set[str] = set()
+    candidates: list[tuple[str, int]] = []
+
+    for length in range(len(word) - 1, min_len - 1, -1):
+        prefix = word[:length]
+        lo = bisect.bisect_left(words, prefix)
+        for i in range(lo, len(words)):
+            w = words[i]
+            if not w.startswith(prefix):
+                break
+            if w == word or w.startswith(word):
+                continue
+            if min_tf > 0 and tfs[i] < min_tf:
+                continue
+            if w not in seen:
+                seen.add(w)
+                candidates.append((w, tfs[i]))
+
+    if sort_by == "freq":
+        candidates.sort(key=lambda x: x[1], reverse=True)
+    else:
+        candidates.sort(key=lambda x: x[0])
+
+    if with_freq:
+        return candidates
+    return [w for w, _ in candidates]
