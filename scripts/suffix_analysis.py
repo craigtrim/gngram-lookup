@@ -1,22 +1,23 @@
 """
 Extract and count morphological suffixes across the Google Books corpus.
 
-For each root word in the vocabulary, finds all longer words sharing the same
-prefix and records the suffix that was appended. The y->i allomorphic alternation
-is handled: "beauty" -> "beautification" yields suffix "fication" (not "ification"),
-since the modified root is "beauti".
+For each WordNet root word with sufficient corpus frequency, finds all longer
+words sharing the same prefix and records the suffix that was appended.
+The y->i allomorphic alternation is handled: "beauty" -> "beautification"
+yields suffix "fication" (not "ification"), since the modified root is "beauti".
 
 Usage:
     poetry run python scripts/suffix_analysis.py
 
 Output:
-    scripts/suffix_counts.csv  (suffix, count, examples)
+    scripts/suffix_counts.csv  (suffix, count)
 """
 
+import argparse
 import csv
 import sys
 import time
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -24,7 +25,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from gngram_lookup import prefix_cluster, wordlist
 
 MIN_ROOT_LEN = 5
-OUTPUT_PATH = Path(__file__).parent / "suffix_counts.csv"
 
 
 def extract_suffix(root: str, member: str) -> str | None:
@@ -39,16 +39,39 @@ def extract_suffix(root: str, member: str) -> str | None:
 
 
 def main() -> None:
-    print("Loading wordlist ...")
-    roots = [w for w in wordlist() if len(w) >= MIN_ROOT_LEN]
+    parser = argparse.ArgumentParser(description="Extract suffix counts from corpus using WordNet roots.")
+    parser.add_argument(
+        "--min-tf",
+        type=int,
+        default=100_000,
+        metavar="N",
+        help="Minimum corpus frequency for root words (default: 100,000)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        metavar="DIR",
+        help="Output directory (default: /tmp)",
+    )
+    parser.add_argument(
+        "--min-count",
+        type=int,
+        default=1,
+        metavar="N",
+        help="Minimum number of roots a suffix must appear on to be included (default: 1)",
+    )
+    args = parser.parse_args()
+
+    output_path = Path(args.output_dir) / "suffix_counts.csv" if args.output_dir else Path("/tmp/suffix_counts.csv")
+
+    print(f"Loading wordlist (min_tf={args.min_tf:,}) ...")
+    roots = [w for w in wordlist(min_tf=args.min_tf) if len(w) >= MIN_ROOT_LEN]
     print(f"  {len(roots):,} root words to process")
 
     suffix_counter: Counter[str] = Counter()
-    suffix_examples: defaultdict[str, list[str]] = defaultdict(list)
 
     t0 = time.time()
     for i, root in enumerate(roots):
-        if i % 50_000 == 0 and i > 0:
+        if i % 10_000 == 0 and i > 0:
             elapsed = time.time() - t0
             rate = i / elapsed
             remaining = (len(roots) - i) / rate
@@ -56,30 +79,28 @@ def main() -> None:
 
         for member in prefix_cluster(root, min_len=MIN_ROOT_LEN):
             suffix = extract_suffix(root, member)
-            if not suffix:
-                continue
-            suffix_counter[suffix] += 1
-            if len(suffix_examples[suffix]) < 3:
-                suffix_examples[suffix].append(f"{root}+{suffix}={member}")
+            if suffix:
+                suffix_counter[suffix] += 1
 
     elapsed = time.time() - t0
     print(f"\nProcessed {len(roots):,} roots in {elapsed:.1f}s")
     print(f"Found {len(suffix_counter):,} distinct suffixes")
-    print(f"Writing to {OUTPUT_PATH} ...")
+    print(f"Writing to {output_path} ...")
 
-    with open(OUTPUT_PATH, "w", newline="", encoding="utf-8") as f:
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["suffix", "count", "examples"])
+        writer.writerow(["suffix", "count"])
         for suffix, count in suffix_counter.most_common():
-            writer.writerow([suffix, count, " | ".join(suffix_examples[suffix])])
+            if count >= args.min_count:
+                writer.writerow([suffix, count])
 
     print("Done.\n")
-    print("Top 30 suffixes:")
-    print(f"  {'suffix':20s}  {'count':>8s}  example")
-    print(f"  {'-'*20}  {'-'*8}  -------")
-    for suffix, count in suffix_counter.most_common(30):
-        example = suffix_examples[suffix][0] if suffix_examples[suffix] else ""
-        print(f"  {repr(suffix):20s}  {count:>8,}  {example}")
+    top = [(s, c) for s, c in suffix_counter.most_common(30) if c >= args.min_count]
+    print(f"Top {len(top)} suffixes (min_count={args.min_count:,}):")
+    print(f"  {'suffix':20s}  {'count':>8s}")
+    print(f"  {'-'*20}  {'-'*8}")
+    for suffix, count in top:
+        print(f"  {repr(suffix):20s}  {count:>8,}")
 
 
 if __name__ == "__main__":
