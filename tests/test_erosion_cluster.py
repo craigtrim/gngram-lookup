@@ -19,11 +19,16 @@ class TestErosionCluster:
         result = erosion_cluster("generate")
         assert "generation" in result
 
-    def test_siblings_do_not_start_with_input(self):
-        # Siblings are not extensions of the input word
+    def test_extensions_excluded(self):
+        # Words that extend the input (e.g. "generates") are excluded; the word itself is not
         word = "generate"
         for w in erosion_cluster(word):
-            assert not w.startswith(word), f"{w!r} starts with {word!r} — should be excluded"
+            assert w == word or not w.startswith(word), f"{w!r} is an extension of {word!r} — should be excluded"
+
+    def test_input_word_included_in_results(self):
+        # The searched word itself appears in results so it shows in context within the tree
+        assert "generate" in erosion_cluster("generate")
+        assert "simplification" in erosion_cluster("simplification")
 
     def test_siblings_share_prefix_with_input(self):
         # Every sibling must share at least min_len chars with the input
@@ -79,3 +84,40 @@ class TestErosionCluster:
     def test_no_duplicates(self):
         result = erosion_cluster("generate")
         assert len(result) == len(set(result))
+
+    def test_prefix_erosion_finds_derived_forms(self):
+        # "beauty" (6 chars) erodes to "beaut" -> finds "beautiful", "beautification", etc.
+        result = erosion_cluster("beauty")
+        assert "beautiful" in result
+
+    def test_min_tf_filters_input_word_when_below_threshold(self):
+        # min_tf applies uniformly — word itself is excluded if its frequency is too low
+        result = erosion_cluster("generate", min_tf=1_000_000_000)
+        assert "generate" not in result
+
+    def test_input_word_only_when_high_min_tf_applied(self):
+        # Without min_tf, the word is in results; with absurd min_tf it is not
+        without_filter = erosion_cluster("generate")
+        with_filter = erosion_cluster("generate", min_tf=1_000_000_000)
+        assert "generate" in without_filter
+        assert "generate" not in with_filter
+
+    def test_sort_by_freq_does_not_include_extensions(self):
+        word = "generate"
+        for w in erosion_cluster(word, sort_by="freq"):
+            assert w == word or not w.startswith(word)
+
+    def test_with_freq_input_word_has_positive_tf(self):
+        result = erosion_cluster("generate", with_freq=True)
+        tf_map = dict(result)
+        assert "generate" in tf_map
+        assert tf_map["generate"] > 0
+
+    def test_long_word_included_in_results(self):
+        # Multi-syllable words are found in their own erosion cluster
+        result = erosion_cluster("simplification")
+        assert "simplification" in result
+
+    def test_all_results_are_lowercase(self):
+        result = erosion_cluster("Generate")
+        assert all(w == w.lower() for w in result)
