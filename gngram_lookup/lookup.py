@@ -444,7 +444,7 @@ def erosion_cluster(
             w = words[i]
             if not w.startswith(prefix):
                 break
-            if w == word or w.startswith(word):
+            if w != word and w.startswith(word):
                 continue
             if min_tf > 0 and tfs[i] < min_tf:
                 continue
