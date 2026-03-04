@@ -1,7 +1,7 @@
 """
 Show morphological siblings for a given word via suffix erosion.
 
-Output is written to a file. Default location is /tmp/erosion_<word>.txt.
+Output is written to a file. Default location is /tmp/gngrams-lookup/erosion_<word>.txt.
 
 Usage:
     poetry run python scripts/erosion.py <word> [--sort freq|alpha] [--with-freq] [--min-tf N] [--output PATH]
@@ -11,7 +11,7 @@ Examples:
     poetry run python scripts/erosion.py generate --sort freq
     poetry run python scripts/erosion.py generate --sort freq --with-freq
     poetry run python scripts/erosion.py generate --sort freq --with-freq --min-tf 100000
-    poetry run python scripts/erosion.py generate --output /tmp/my-output.txt
+    poetry run python scripts/erosion.py generate --output /tmp/gngrams-lookup/my-output.txt
 """
 
 import argparse
@@ -37,6 +37,7 @@ def _build_tree_lines(
     results: list[tuple[str, int]],
     with_freq: bool,
     anchor_tf: int | None = None,
+    color: bool = False,
 ) -> list[str]:
     """Render results as an indented prefix tree with vertically aligned numbers.
 
@@ -111,14 +112,24 @@ def _build_tree_lines(
     for d in [d for d in depths if parent_depth(d) is None]:
         collect_group(d)
 
+    # Color codes — applied only to terminal output; widths always computed on raw text.
+    RESET = "\033[0m"    if color else ""
+    LABEL = "\033[1m"    if color else ""   # bold          — group headers (simpl-, simplifi-)
+    WORD  = "\033[36m"   if color else ""   # cyan           — word entries
+    VAL   = "\033[1;33m" if color else ""   # bold yellow    — frequencies
+
+    def _color_text(text: str) -> str:
+        c = LABEL if text.endswith("-") else WORD
+        return f"{c}{text}{RESET}"
+
     if not with_freq:
         return [
-            "" if level < 0 else " " * (level * INDENT) + text
+            "" if level < 0 else " " * (level * INDENT) + _color_text(text)
             for level, text, _ in entries
         ]
 
     # Second pass: compute a single global column so all numbers align.
-    # Exclude blank separator entries (level < 0) from column calculation.
+    # Use raw text lengths (no escape codes) so alignment is unaffected by color.
     col = max(level * INDENT + len(text) for level, text, _ in entries if level >= 0) + 2
 
     lines = []
@@ -127,11 +138,12 @@ def _build_tree_lines(
             lines.append("")
             continue
         indent = " " * (level * INDENT)
+        pos = level * INDENT + len(text)   # raw length for padding
+        colored = _color_text(text)
         if tf is None:
-            lines.append(indent + text)
+            lines.append(indent + colored)
         else:
-            pos = level * INDENT + len(text)
-            lines.append(f"{indent}{text}{' ' * (col - pos)}{tf:>12,}")
+            lines.append(f"{indent}{colored}{' ' * (col - pos)}{VAL}{tf:>12,}{RESET}")
     return lines
 
 
@@ -159,9 +171,11 @@ def main() -> None:
     parser.add_argument(
         "--output",
         metavar="PATH",
-        help="Output file or directory (default: /tmp/erosion_<word>.txt)",
+        help="Output file or directory (default: /tmp/gngrams-lookup/erosion_<word>.txt)",
     )
     args = parser.parse_args()
+
+    TMP_DIR = Path("/tmp/gngrams-lookup")
 
     # Always fetch with_freq=True internally so tree builder has freq data
     results = erosion_cluster(args.word, sort_by=args.sort, with_freq=True, min_tf=args.min_tf)
@@ -174,7 +188,8 @@ def main() -> None:
             out.mkdir(parents=True, exist_ok=True)
             out = out / filename
     else:
-        out = Path("/tmp") / filename
+        TMP_DIR.mkdir(parents=True, exist_ok=True)
+        out = TMP_DIR / filename
 
     if not results:
         out.write_text(f"No siblings found for {args.word!r}\n")
@@ -185,9 +200,11 @@ def main() -> None:
     freq = frequency(args.word)
     anchor_tf = freq["sum_tf"] if freq else 0
 
-    lines = _build_tree_lines(args.word, results, with_freq=args.with_freq, anchor_tf=anchor_tf)
+    color = sys.stdout.isatty()
+    lines = _build_tree_lines(args.word, results, with_freq=args.with_freq, anchor_tf=anchor_tf, color=color)
+    plain = _build_tree_lines(args.word, results, with_freq=args.with_freq, anchor_tf=anchor_tf, color=False) if color else lines
 
-    out.write_text("\n".join(lines) + "\n")
+    out.write_text("\n".join(plain) + "\n")
     print("\n".join(lines))
     print(f"\n{len(results)} results written to {out}")
 

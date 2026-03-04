@@ -1,7 +1,7 @@
 """
 Show prefix cluster variations for a given word.
 
-Output is written to a file. Default location is /tmp/cluster_<word>.txt.
+Output is printed to stdout. If --output is given, results are also written to a file.
 
 Usage:
     poetry run python scripts/cluster.py <word> [--sort freq|alpha] [--with-freq] [--output PATH]
@@ -11,8 +11,8 @@ Examples:
     poetry run python scripts/cluster.py happy --sort freq
     poetry run python scripts/cluster.py happy --sort freq --with-freq
     poetry run python scripts/cluster.py happy --sort freq --with-freq --min-tf 100000
-    poetry run python scripts/cluster.py happy --output /tmp/my-output.txt
-    poetry run python scripts/cluster.py happy --output /tmp/mydir/
+    poetry run python scripts/cluster.py happy --output /tmp/gngrams-lookup/my-output.txt
+    poetry run python scripts/cluster.py happy --output /tmp/gngrams-lookup/
 """
 
 import argparse
@@ -48,39 +48,53 @@ def main() -> None:
     parser.add_argument(
         "--output",
         metavar="PATH",
-        help="Output file or directory (default: /tmp/cluster_<word>.txt)",
+        help="Write results to this file or directory (optional; stdout always printed)",
     )
     args = parser.parse_args()
 
-    results = prefix_cluster(args.word, sort_by=args.sort, with_freq=args.with_freq, min_tf=args.min_tf)
+    # Always fetch with_freq=True so we have freq data for alignment
+    results = prefix_cluster(args.word, sort_by=args.sort, with_freq=True, min_tf=args.min_tf)
 
-    # Resolve output path
-    filename = f"cluster_{args.word.lower()}.txt"
+    if not results:
+        print(f"No cluster found for {args.word!r}")
+        return
+
+    color = sys.stdout.isatty()
+    RESET = "\033[0m"    if color else ""
+    WORD  = "\033[36m"   if color else ""   # cyan          — word entries
+    VAL   = "\033[1;33m" if color else ""   # bold yellow   — frequencies
+
+    def _fmt(word: str, tf: int, col: int) -> tuple[str, str]:
+        """Return (plain_line, colored_line) for one result row."""
+        plain = f"{word:<{col}}  {tf:>12,}"
+        colored = f"{WORD}{word}{RESET}{' ' * (col - len(word))}  {VAL}{tf:>12,}{RESET}"
+        return plain, colored
+
+    col = max(len(w) for w, _ in results)
+
+    plain_lines: list[str] = []
+    color_lines: list[str] = []
+
+    if args.with_freq:
+        for word, tf in results:
+            plain, colored = _fmt(word, tf, col)
+            plain_lines.append(plain)
+            color_lines.append(colored)
+    else:
+        for word, _ in results:
+            plain_lines.append(word)
+            color_lines.append(f"{WORD}{word}{RESET}" if color else word)
+
+    print("\n".join(color_lines))
+
     if args.output:
+        filename = f"cluster_{args.word.lower()}.txt"
         out = Path(args.output)
         if out.is_dir() or str(args.output).endswith("/"):
             out.mkdir(parents=True, exist_ok=True)
             out = out / filename
-    else:
-        out = Path("/tmp") / filename
-
-    if not results:
-        out.write_text(f"No cluster found for {args.word!r}\n")
-        print(f"No cluster found for {args.word!r}")
-        print(f"Written to {out}")
-        return
-
-    lines = []
-    if args.with_freq:
-        width = max(len(w) for w, _ in results)
-        for word, tf in results:
-            lines.append(f"{word:<{width}}  {tf:>12,}")
-    else:
-        for word in results:
-            lines.append(word)
-
-    out.write_text("\n".join(lines) + "\n")
-    print(f"{len(results)} results written to {out}")
+        out.write_text("\n".join(plain_lines) + "\n")
+        print(f"\n{len(results)} results written to {out}")
 
 
 if __name__ == "__main__":

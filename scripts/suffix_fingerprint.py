@@ -15,9 +15,11 @@ The y->i allomorphic alternation is handled identically to suffix_analysis.py.
 Usage:
     poetry run python scripts/suffix_fingerprint.py
 
-Output:
-    /tmp/suffix_fingerprints.csv   (fingerprint, count)
-    /tmp/suffix_word_index.json    (fingerprint -> [words])  for use by suffix_query.py
+Output (filenames include --min-tf value, e.g. for --min-tf 100000):
+    /tmp/gngrams-lookup/suffix_fingerprints-100000.csv   (fingerprint, count)
+    /tmp/gngrams-lookup/suffix_word_index-100000.json    (fingerprint -> [words])  for use by suffix_query.py
+
+If the output files already exist, the script exits early. Pass --overwrite to regenerate.
 """
 
 import argparse
@@ -81,11 +83,26 @@ def main() -> None:
         metavar="N",
         help="Minimum number of distinct suffixes in a fingerprint (default: 2)",
     )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing output files (corpus data never changes, so rarely needed)",
+    )
     args = parser.parse_args()
 
-    out_dir = Path(args.output_dir) if args.output_dir else Path("/tmp")
-    csv_path = out_dir / "suffix_fingerprints.csv"
-    json_path = out_dir / "suffix_word_index.json"
+    TMP_DIR = Path("/tmp/gngrams-lookup")
+    out_dir = Path(args.output_dir) if args.output_dir else TMP_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    slug = f"-{args.min_tf}"
+    csv_path = out_dir / f"suffix_fingerprints{slug}.csv"
+    json_path = out_dir / f"suffix_word_index{slug}.json"
+
+    if not args.overwrite and (csv_path.exists() or json_path.exists()):
+        existing = [p for p in (csv_path, json_path) if p.exists()]
+        for p in existing:
+            print(f"Already exists: {p}")
+        print("Pass --overwrite to regenerate.")
+        return
 
     print(f"Loading wordlist (min_tf={args.min_tf:,}) ...")
     roots = [w for w in wordlist(min_tf=args.min_tf) if len(w) >= MIN_ROOT_LEN]

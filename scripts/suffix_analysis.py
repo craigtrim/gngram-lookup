@@ -50,7 +50,7 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         metavar="DIR",
-        help="Output directory (default: /tmp)",
+        help="Output directory (default: /tmp/gngrams-lookup)",
     )
     parser.add_argument(
         "--min-count",
@@ -61,7 +61,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    output_path = Path(args.output_dir) / "suffix_counts.csv" if args.output_dir else Path("/tmp/suffix_counts.csv")
+    TMP_DIR = Path("/tmp/gngrams-lookup")
+    out_dir = Path(args.output_dir) if args.output_dir else TMP_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    output_path = out_dir / "suffix_counts.csv"
 
     print(f"Loading wordlist (min_tf={args.min_tf:,}) ...")
     roots = [w for w in wordlist(min_tf=args.min_tf) if len(w) >= MIN_ROOT_LEN]

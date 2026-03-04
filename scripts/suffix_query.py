@@ -13,7 +13,7 @@ Options:
     --contains    Match any fingerprint that contains ALL given suffixes (not exact)
     --sort        freq (default) or alpha
     --min-tf      Minimum corpus frequency of the derived form (default: 0 = all)
-    --index       Path to suffix_word_index.json (default: /tmp/suffix_word_index.json)
+    --index       Path to suffix_word_index_mintf<N>.json produced by suffix_fingerprint.py
 """
 
 import argparse
@@ -75,8 +75,8 @@ def main() -> None:
     parser.add_argument(
         "--index",
         metavar="PATH",
-        default="/tmp/suffix_word_index.json",
-        help="Path to suffix_word_index.json (default: /tmp/suffix_word_index.json)",
+        default="/tmp/gngrams-lookup/suffix_word_index-100000.json",
+        help="Path to suffix_word_index-<N>.json produced by suffix_fingerprint.py (default: 100000)",
     )
     args = parser.parse_args()
 
