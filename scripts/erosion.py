@@ -69,15 +69,16 @@ def _build_tree_lines(
         depth_level[d] = (depth_level[pd] + 1) if pd is not None else 0
 
     # First pass: collect (indent_level, text, tf_or_none) entries.
-    # Anchor word goes first at level 0 so it's included in column calculation.
+    # Anchor word always goes first at level 0; frequency shown only when with_freq=True.
     entries: list[tuple[int, str, int | None]] = []
-    if anchor_tf is not None:
-        entries.append((0, input_word, anchor_tf))
-        entries.append((-1, "", None))  # blank separator
+    tf_to_show = anchor_tf if (with_freq and anchor_tf is not None) else None
+    entries.append((0, input_word, tf_to_show))
+    entries.append((-1, "", None))  # blank separator
 
     def collect_group(d: int) -> None:
         level = depth_level[d]
-        entries.append((level, input_word[:d] + "-", None))
+        if d < len(input_word):
+            entries.append((level, input_word[:d] + "-", None))
 
         group_words = by_depth[d]
         tf_map = {w: tf for w, tf in group_words}
@@ -181,10 +182,8 @@ def main() -> None:
         print(f"Written to {out}")
         return
 
-    anchor_tf = None
-    if args.with_freq:
-        freq = frequency(args.word)
-        anchor_tf = freq["sum_tf"] if freq else 0
+    freq = frequency(args.word)
+    anchor_tf = freq["sum_tf"] if freq else 0
 
     lines = _build_tree_lines(args.word, results, with_freq=args.with_freq, anchor_tf=anchor_tf)
 
