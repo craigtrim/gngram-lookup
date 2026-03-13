@@ -30,10 +30,24 @@ def gngram_freq() -> None:
         print("None")
         sys.exit(1)
 
-    print(f"peak_tf_decade: {result['peak_tf']}")
-    print(f"peak_df_decade: {result['peak_df']}")
-    print(f"sum_tf: {result['sum_tf']}")
-    print(f"sum_df: {result['sum_df']}")
+    color = sys.stdout.isatty()
+    RESET = "\033[0m"   if color else ""
+    KEY   = "\033[36m"  if color else ""   # cyan, no bold
+    VAL   = "\033[1;33m" if color else ""  # bold yellow — all values
+
+    rows = [
+        ("peak_tf_decade", str(result["peak_tf"])),
+        ("peak_df_decade", str(result["peak_df"])),
+        ("sum_tf",         f"{result['sum_tf']:,}"),
+        ("sum_df",         f"{result['sum_df']:,}"),
+    ]
+
+    key_w = max(len(k) for k, _ in rows)
+    val_w = max(len(v) for _, v in rows)
+
+    for key, val in rows:
+        print(f"  {KEY}{key:>{key_w}}{RESET}   {VAL}{val:>{val_w}}{RESET}")
+
     sys.exit(0)
 
 
@@ -81,8 +95,17 @@ def gngram_pos_freq() -> None:
         print("None")
         sys.exit(1)
 
-    for tag, freq in sorted(result.items()):
-        print(f"{tag}: {freq:,}")
+    color = sys.stdout.isatty()
+    RESET = "\033[0m"    if color else ""
+    KEY   = "\033[36m"   if color else ""   # cyan, no bold
+    VAL   = "\033[1;33m" if color else ""   # bold yellow — all values
+
+    rows = sorted(result.items(), key=lambda x: x[1], reverse=True)
+    key_w = max(len(tag) for tag, _ in rows)
+    val_w = max(len(f"{n:,}") for _, n in rows)
+
+    for tag, n in rows:
+        print(f"  {KEY}{tag:>{key_w}}{RESET}   {VAL}{n:>{val_w},}{RESET}")
     sys.exit(0)
 
 

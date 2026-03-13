@@ -98,6 +98,12 @@ def pos_freq(word: str, min_tf: int | None = None) -> dict[str, int]:
         FileNotFoundError: If POS data files have not been downloaded.
     """
     result = _lookup_raw(word)
+
+    # The Google Books corpus OCR sometimes fuses a trailing period with the
+    # preceding word ("simplification." → tagged as ".").  These entries are
+    # scanner artifacts with no linguistic meaning and are always dropped.
+    result = {t: f for t, f in result.items() if t != "."}
+
     if min_tf is not None:
         result = {t: f for t, f in result.items() if f >= min_tf}
     return result

@@ -149,7 +149,7 @@ def main() -> None:
     print(f"Writing {json_path} ...")
     word_index = {"|".join(sorted(fp)): words for fp, words in groups}
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(word_index, f)
+        json.dump(word_index, f, indent=2)
 
     print("Done.\n")
     print(f"Top 20 fingerprint groups (min_group={args.min_group:,}):")

@@ -13,7 +13,7 @@ Options:
     --contains    Match any fingerprint that contains ALL given suffixes (not exact)
     --sort        freq (default) or alpha
     --min-tf      Minimum corpus frequency of the derived form (default: 0 = all)
-    --index       Path to suffix_word_index_mintf<N>.json produced by suffix_fingerprint.py
+    --index       Path to index file (auto-detected from /tmp/gngrams-lookup if omitted)
 """
 
 import argparse
@@ -75,12 +75,30 @@ def main() -> None:
     parser.add_argument(
         "--index",
         metavar="PATH",
-        default="/tmp/gngrams-lookup/suffix_word_index-100000.json",
-        help="Path to suffix_word_index-<N>.json produced by suffix_fingerprint.py (default: 100000)",
+        default=None,
+        help="Path to suffix_word_index-<N>.json (auto-detected from /tmp/gngrams-lookup if omitted)",
     )
     args = parser.parse_args()
 
-    index_path = Path(args.index)
+    TMP_DIR = Path("/tmp/gngrams-lookup")
+    if args.index:
+        index_path = Path(args.index)
+    else:
+        candidates = sorted(TMP_DIR.glob("suffix_word_index-*.json"))
+        if not candidates:
+            print("No suffix word index found in /tmp/gngrams-lookup/.")
+            print("Run suffix_fingerprint.py first to build the index.")
+            sys.exit(1)
+        elif len(candidates) == 1:
+            index_path = candidates[0]
+        else:
+            print("Multiple indexes found:")
+            for i, p in enumerate(candidates):
+                print(f"  [{i}] {p.name}")
+            choice = input("Select [0]: ").strip()
+            idx = int(choice) if choice else 0
+            index_path = candidates[idx]
+
     if not index_path.exists():
         print(f"Index not found: {index_path}")
         print("Run suffix_fingerprint.py first to build the index.")
